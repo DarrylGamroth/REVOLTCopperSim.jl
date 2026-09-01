@@ -12,6 +12,7 @@ export actuator_index_map
 export command_count
 export graph_path
 export normalized_pupil_actuator_pitch
+export prepare_calibration_system
 export prepare_hil_system
 export provisional_gaussian_influence_width
 export provisional_mechanical_coupling

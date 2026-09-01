@@ -31,6 +31,16 @@ using Test
         0.08626550214129701
 end
 
+@testset "REVOLT Copper calibration preparation" begin
+    calibration = prepare_calibration_system()
+    @test graph_name(calibration.graph) === :revolt_copper_hil_calibration
+    @test size(hil_frame_buffer(calibration.boundary)) == (64, 64)
+    @test all(iszero, calibration.uncompensated_opd)
+    @test step_hil_frame!(calibration.boundary) == UInt64(1)
+    @test all(isfinite, hil_frame_buffer(calibration.boundary))
+    @test sum(hil_frame_buffer(calibration.boundary)) > 0
+end
+
 @testset "REVOLT Copper graph profiles" begin
     @test supported_profiles() == (:coordinate_gaussian, :grid_gaussian)
     @test basename(graph_path()) ==
