@@ -122,15 +122,20 @@ function target_and_accelerator_info()
 end
 
 function git_environment(root::AbstractString)
-    status = command_output(
-        `git -C $root status --porcelain=v1 --untracked-files=all`,
+    tracked_status = command_output(
+        `git -C $root status --porcelain=v1 --untracked-files=no`,
+    )
+    untracked_paths = command_output(
+        `git -C $root ls-files --others --exclude-standard`,
     )
     return Dict{String,Any}(
         "root" => root,
         "commit" => command_output(`git -C $root rev-parse HEAD`),
         "branch" => command_output(`git -C $root branch --show-current`),
-        "dirty" => !isempty(status) && status != "unknown",
-        "status_porcelain" => status,
+        "tracked_dirty" =>
+            !isempty(tracked_status) && tracked_status != "unknown",
+        "tracked_status_porcelain" => tracked_status,
+        "untracked_paths" => untracked_paths,
     )
 end
 
