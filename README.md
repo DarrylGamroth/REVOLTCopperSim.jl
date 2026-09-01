@@ -96,3 +96,24 @@ p50/p90 (and p99 only with at least 100 samples), mean frame and cycle rates,
 source revisions, dirty state, runtime versions, hardware, affinity, and power
 policy. These are self-paced service-cost measurements, not fixed-rate
 deadline claims.
+
+### Recorded results (2026-09-01)
+
+| Backend | Execution | Mean frame rate | Mean HIL cycle rate | Frame p50 / p90 / p99 | Warmed Julia bytes/cycle |
+|---|---|---:|---:|---:|---:|
+| CPU | stream | 3.370 frames/s | 3.370 cycles/s | 293.157 / 318.147 / 339.881 ms | 0 |
+| AMDGPU | captured HIP graph | 19.107 frames/s | 19.094 cycles/s | 51.197 / 55.765 / 57.924 ms | 0 |
+| CUDA | captured CUDA graph | 9.371 frames/s | 8.832 cycles/s | 101.385 / 117.702 / 150.369 ms | 32–96 |
+
+Each row contains three fresh prepared runs of 100 measured frames after ten
+warmup frames per run. The [CPU](benchmark/results/2026-09-01-cpu.toml),
+[AMDGPU](benchmark/results/2026-09-01-amdgpu.toml), and
+[CUDA](benchmark/results/2026-09-01-cuda.toml) artifacts contain the raw
+samples and provenance.
+
+CPU and AMDGPU ran on `rtc-devel` with an AMD Ryzen 7 6800H and its integrated
+Rembrandt GPU. CUDA ran under WSL2 on `DGAMROTH-XPS` with an Intel Core
+i7-12700H and RTX 3050 Ti Laptop GPU. These measurements therefore establish
+the service cost on the available systems; they are not an isolated
+AMD-versus-NVIDIA hardware comparison. Each process was pinned to one CPU, but
+the recorded system load was not otherwise quiescent.
