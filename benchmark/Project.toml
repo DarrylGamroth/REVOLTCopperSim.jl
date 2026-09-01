@@ -1,0 +1,20 @@
+[deps]
+AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
+AdaptiveOpticsSim = "002fb5eb-ad68-44a0-adbe-b299bfc2febc"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+REVOLTCopperSim = "1e096dfd-8d59-466f-967d-e58cf577fca9"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+
+[sources]
+AdaptiveOpticsSim = {path = "../../AdaptiveOpticsSim.jl"}
+REVOLTCopperSim = {path = ".."}
+
+[compat]
+AMDGPU = "2.7"
+AdaptiveOpticsSim = "0.1"
+CUDA = "6"
+REVOLTCopperSim = "0.1"
+julia = "1.12"

@@ -33,27 +33,48 @@ function graph_path(profile::Symbol=:grid_gaussian)
     return joinpath(_GRAPH_DIRECTORY, _graph_filename(Val(profile)))
 end
 
-function _graph_bindings(profile::Symbol)
-    pdm_command = zeros(Float32, command_count())
+function _copy_to_target(target, values::AbstractArray)
+    target_values = allocate_device_array(
+        target,
+        eltype(values),
+        size(values)...,
+    )
+    copyto!(target_values, values)
+    return target_values
+end
+
+function _graph_bindings(profile::Symbol, target)
+    pdm_command = _copy_to_target(
+        target,
+        zeros(Float32, command_count()),
+    )
     if profile === :coordinate_gaussian
-        return (; pdm_command, pdm_actuator_coordinates=actuator_coordinates())
+        pdm_actuator_coordinates = _copy_to_target(
+            target,
+            actuator_coordinates(),
+        )
+        return (; pdm_command, pdm_actuator_coordinates)
     elseif profile === :grid_gaussian
-        return (; pdm_command, pdm_actuator_grid_indices=actuator_grid_indices())
+        pdm_actuator_grid_indices = _copy_to_target(
+            target,
+            actuator_grid_indices(),
+        )
+        return (; pdm_command, pdm_actuator_grid_indices)
     end
     graph_path(profile)
     error("unreachable REVOLT Copper profile")
 end
 
-function _graph_definition(profile::Symbol)
+function _graph_definition(profile::Symbol, target)
     return load_algorithm_graph(
         graph_path(profile);
-        bindings=_graph_bindings(profile),
+        bindings=_graph_bindings(profile, target),
     )
 end
 
 """
     prepare_hil_system(; profile=:grid_gaussian,
-        target=HostComputeDevice())
+        target=HostComputeDevice(), execution=StreamGraphExecution())
 
 Prepare the atmosphere-backed REVOLT Copper detector graph and its serialized
 277-command/64×64-frame HIL boundary. The returned command and frame buffers
@@ -62,9 +83,10 @@ remain owned by the prepared boundary.
 function prepare_hil_system(;
     profile::Symbol=:grid_gaussian,
     target=HostComputeDevice(),
+    execution=StreamGraphExecution(),
 )
-    definition = _graph_definition(profile)
-    graph = prepare_algorithm_graph(definition; target)
+    definition = _graph_definition(profile, target)
+    graph = prepare_algorithm_graph(definition; target, execution)
     boundary = prepare_graph_hil_boundary(
         graph;
         command_input=:pdm_command,
@@ -105,7 +127,7 @@ end
 
 """
     prepare_calibration_system(; profile=:grid_gaussian,
-        target=HostComputeDevice())
+        target=HostComputeDevice(), execution=StreamGraphExecution())
 
 Prepare a flat, noiseless REVOLT Copper graph for a simulation-local Pyramid
 interaction matrix. It retains the selected provisional HSDM277 model and the
@@ -115,8 +137,9 @@ qualified pixel reconstructor.
 function prepare_calibration_system(;
     profile::Symbol=:grid_gaussian,
     target=HostComputeDevice(),
+    execution=StreamGraphExecution(),
 )
-    production = _graph_definition(profile)
+    production = _graph_definition(profile, target)
     length(production.nodes) == 5 || error(
         "the maintained REVOLT Copper HIL graph must contain five nodes",
     )
@@ -124,7 +147,10 @@ function prepare_calibration_system(;
     composition = production.nodes[3]
     pwfs = production.nodes[4]
     detector = _calibration_detector(production.nodes[5])
-    uncompensated_opd = zeros(Float32, _PUPIL_RESOLUTION, _PUPIL_RESOLUTION)
+    uncompensated_opd = _copy_to_target(
+        target,
+        zeros(Float32, _PUPIL_RESOLUTION, _PUPIL_RESOLUTION),
+    )
     definition = algorithm_graph(
         (pdm, composition, pwfs, detector);
         name=:revolt_copper_hil_calibration,
@@ -152,7 +178,7 @@ function prepare_calibration_system(;
         ),
         parameters=production.parameters,
     )
-    graph = prepare_algorithm_graph(definition; target)
+    graph = prepare_algorithm_graph(definition; target, execution)
     boundary = prepare_graph_hil_boundary(
         graph;
         command_input=:pdm_command,
