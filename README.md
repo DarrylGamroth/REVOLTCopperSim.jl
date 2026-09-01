@@ -104,11 +104,11 @@ deadline claims.
 | Backend | Execution | Mean frame rate | Mean HIL cycle rate | Frame p50 / p90 / p99 | Warmed Julia bytes/cycle |
 |---|---|---:|---:|---:|---:|
 | CPU | stream | 3.370 frames/s | 3.370 cycles/s | 293.157 / 318.147 / 339.881 ms | 0 |
-| AMDGPU | captured HIP graph | 19.107 frames/s | 19.094 cycles/s | 51.197 / 55.765 / 57.924 ms | 0 |
-| CUDA | captured CUDA graph | 73.056 frames/s | 72.296 cycles/s | 13.587 / 14.200 / 14.716 ms | 0–64 |
+| AMDGPU | captured HIP graph | 19.756 frames/s | 19.741 cycles/s | 49.958 / 52.628 / 53.632 ms | 0 |
+| CUDA | captured CUDA graph | 76.781 frames/s | 76.165 cycles/s | 12.989 / 13.431 / 17.995 ms | 0 |
 
-Each row contains three fresh prepared runs of 100 measured frames. CPU and
-AMDGPU used ten warmup frames per run; the corrected CUDA result used 200. The
+Each row contains three fresh prepared runs of 100 measured frames. CPU used
+ten warmup frames per run; both accelerator results used 200. The
 [CPU](benchmark/results/2026-09-01-cpu.toml),
 [AMDGPU](benchmark/results/2026-09-01-amdgpu.toml), and
 [CUDA](benchmark/results/2026-09-01-cuda.toml) artifacts contain the raw
@@ -119,6 +119,12 @@ captured completion boundary. AdaptiveOpticsSim `aa3d934` selects direct
 blocking stream completion only for capture-qualified execution, which cannot
 contain host callbacks. The corrected row changes that completion mechanism;
 the instrument graph and timed service boundary are unchanged.
+
+AdaptiveOpticsSim `5c17514` also forms each fixed-modulation Pyramid batch with
+one work item per focal coordinate, loading the shared focal field once while
+writing all 32 planes. The optical model, FFT count, modulation sampling, and
+output shape are unchanged. The CUDA result showed run-to-run laptop power
+variation; its raw artifact retains the slower third run and resulting p99.
 
 CPU and AMDGPU ran on `rtc-devel` with an AMD Ryzen 7 6800H and its integrated
 Rembrandt GPU. CUDA ran under WSL2 on `DGAMROTH-XPS` with an Intel Core
