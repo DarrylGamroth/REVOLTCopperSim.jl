@@ -1,0 +1,21 @@
+name = "REVOLTCopperSim"
+uuid = "1e096dfd-8d59-466f-967d-e58cf577fca9"
+authors = ["REVOLT Copper simulation contributors"]
+version = "0.1.0"
+
+[deps]
+AdaptiveOpticsSim = "002fb5eb-ad68-44a0-adbe-b299bfc2febc"
+
+[sources]
+AdaptiveOpticsSim = {path = "../AdaptiveOpticsSim.jl"}
+
+[compat]
+AdaptiveOpticsSim = "0.1"
+Test = "1.11"
+julia = "1.12"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

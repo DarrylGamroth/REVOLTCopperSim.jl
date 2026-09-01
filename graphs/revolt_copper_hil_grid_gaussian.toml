@@ -1,0 +1,169 @@
+# REVOLT Copper HIL sensor boundary with separable-grid PDM evaluation.
+#
+# This graph changes only the implementation of the provisional HSDM277
+# surface. The exact 277-element command is scattered into its regular 19-by-19
+# physical grid and the same Gaussian influence model is evaluated with the
+# separable X * C * Y' factorization. Atmosphere, pupil sampling, 32-point
+# diffractive Pyramid modulation, detector noise, 64-by-64 RTC frame, and 2 ms
+# model-time step match revolt_copper_hil_coordinate_gaussian.toml. Both Copper
+# graphs explicitly use the same fixed-modulation shifted-mask detector-product
+# approximation.
+
+schema_version = 1
+name = "revolt_copper_hil_grid_gaussian"
+
+[[nodes]]
+name = "atmosphere"
+type = "multilayer_atmosphere_opd_f32"
+
+[nodes.config]
+resolution = 480
+telescope_diameter_m = 1.22
+central_obstruction_ratio = 0.0
+pupil_reflectivity = 1.0
+aperture_revision = 1
+r0 = 0.15
+reference_wavelength_m = 5.0e-7
+L0 = 30.0
+fractional_cn2 = [0.45, 0.10, 0.10, 0.25, 0.10]
+wind_speed = [5.0, 5.0, 7.0, 10.0, 10.0]
+wind_direction_deg = [0.0, 72.0, 144.0, 216.0, 288.0]
+altitude = [0.0, 1000.0, 5000.0, 10000.0, 12000.0]
+layer_ids = [
+    "revolt_ground",
+    "revolt_1km",
+    "revolt_5km",
+    "revolt_10km",
+    "revolt_12km",
+]
+atmosphere_step = 0.002
+rng_seed = 1
+atmosphere_opd_schema = "org.revolt.copper.atmosphere-opd-m.f32/1"
+
+[[nodes]]
+name = "pdm"
+type = "grid_gaussian_deformable_mirror_surface_f32"
+
+[nodes.config]
+resolution = 480
+telescope_diameter_m = 1.22
+central_obstruction_ratio = 0.0
+pupil_reflectivity = 1.0
+aperture_revision = 1
+actuator_count = 277
+actuator_axis_count = 19
+actuator_pitch = 0.125
+influence_width = 0.08626550214129701
+pdm_command_schema = "org.revolt.hsdm277.actuator-surface-opd-m.f32/1"
+surface_opd_schema = "org.revolt.hsdm277.pdm-surface-opd-m.f32/1"
+actuator_grid_indices_schema = "org.revolt.hsdm277.actuator-grid-indices.i32/1"
+
+[[nodes]]
+name = "pupil_opd_composition"
+type = "pupil_opd_composition_f32"
+
+[nodes.config]
+resolution = 480
+uncompensated_opd_schema = "org.revolt.copper.atmosphere-opd-m.f32/1"
+surface_opd_schema = "org.revolt.hsdm277.pdm-surface-opd-m.f32/1"
+pupil_opd_schema = "org.revolt.copper.pupil-opd-m.f32/1"
+
+[[nodes]]
+name = "pwfs"
+type = "pyramid_rate_f32"
+
+[nodes.config]
+resolution = 480
+telescope_diameter_m = 1.22
+central_obstruction_ratio = 0.0
+pupil_reflectivity = 1.0
+aperture_revision = 1
+pupil_samples = 30
+threshold = 0.1
+modulation = 5.0
+modulation_points = 32
+modulation_propagation_strategy = "shifted_mask"
+light_ratio = 0.1
+diffraction_padding = 2
+psf_centering = true
+n_pix_separation = 2
+n_pix_edge = 1
+binning = 1
+source_band = "V"
+source_magnitude = 5.752574989159953
+source_wavelength_m = 5.5e-7
+source_separation_arcsec = 0.0
+source_position_angle_deg = 0.0
+opd_schema = "org.revolt.copper.pupil-opd-m.f32/1"
+photon_rate_schema = "org.revolt.copper.pwfs-photon-rate.f32/1"
+
+[[nodes]]
+name = "detector"
+type = "emccd_detector_acquisition_f32"
+
+[nodes.config]
+rows = 64
+columns = 64
+binning = 1
+normalized_pupil_sampling = 0.03333333333333333
+wavelength_m = 5.5e-7
+exposure_duration_s = 0.002
+quantum_efficiency = 0.95
+gain = 1.0
+dark_current_e_per_pixel_s = 20.0
+bits = 14
+full_well_e = 16000.0
+photon_noise = true
+readout_noise = true
+readout_noise_e = 1.0
+excess_noise_factor = 1.0
+clock_induced_charge_e_per_pixel_frame = 0.0
+rng_seed = 0
+photon_rate_schema = "org.revolt.copper.pwfs-photon-rate.f32/1"
+frame_schema = "org.revolt.copper.pwfs-frame.f32/1"
+
+[[inputs]]
+name = "pdm_command"
+destination = "pdm.pdm_command"
+binding = "pdm_command"
+
+[[outputs]]
+name = "pdm_surface_opd"
+source = "pdm.surface_opd"
+
+[[outputs]]
+name = "atmosphere_opd"
+source = "atmosphere.atmosphere_opd"
+
+[[outputs]]
+name = "pupil_opd"
+source = "pupil_opd_composition.pupil_opd"
+
+[[outputs]]
+name = "pwfs_photon_rate"
+source = "pwfs.photon_rate"
+
+[[outputs]]
+name = "pwfs_frame"
+source = "detector.frame"
+
+[[links]]
+source = "pdm.surface_opd"
+destination = "pupil_opd_composition.surface_opd"
+
+[[links]]
+source = "atmosphere.atmosphere_opd"
+destination = "pupil_opd_composition.uncompensated_opd"
+
+[[links]]
+source = "pupil_opd_composition.pupil_opd"
+destination = "pwfs.opd"
+
+[[links]]
+source = "pwfs.photon_rate"
+destination = "detector.photon_rate"
+
+[[parameters]]
+destination = "pdm.actuator_grid_indices"
+binding = "pdm_actuator_grid_indices"
+
