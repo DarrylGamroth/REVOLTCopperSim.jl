@@ -1,5 +1,8 @@
 const _COMMAND_COUNT = 277
 const _PUPIL_RESOLUTION = 480
+const _TELESCOPE_DIAMETER_M = 1.22
+const _CENTRAL_OBSTRUCTION_RATIO = 0.0
+const _SCIENCE_WAVELENGTH_M = 550.0e-9
 const _GRAPH_DIRECTORY = normpath(joinpath(pkgdir(REVOLTCopperSim), "graphs"))
 const _SUPPORTED_PROFILES = (:coordinate_gaussian, :grid_gaussian)
 

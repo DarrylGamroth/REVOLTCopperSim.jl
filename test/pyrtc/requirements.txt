@@ -1,0 +1,4 @@
+# GitHub revision used by the maintained ImageSHM and live-view examples.
+pyrtcao[viewer] @ git+https://github.com/jacotay7/pyRTC.git@1c0a55e81433eb7499808cac9c2641d8d6b4cfd7
+
+
