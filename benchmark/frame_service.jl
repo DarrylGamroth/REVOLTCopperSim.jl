@@ -40,7 +40,12 @@ const EXECUTION_NAME = lowercase(get(
     BACKEND_NAME == "cpu" ? "stream" : "captured",
 ))
 const SAMPLE_COUNT = parse(Int, get(ENV, "REVOLT_BENCH_SAMPLES", "20"))
-const WARMUP_CYCLES = parse(Int, get(ENV, "REVOLT_BENCH_WARMUP", "5"))
+const DEFAULT_WARMUP_CYCLES = BACKEND_NAME == "cpu" ? 10 : 200
+const WARMUP_CYCLES = parse(Int, get(
+    ENV,
+    "REVOLT_BENCH_WARMUP",
+    string(DEFAULT_WARMUP_CYCLES),
+))
 const RUN_COUNT = parse(Int, get(ENV, "REVOLT_BENCH_RUNS", "3"))
 const OUTPUT_PATH = get(ENV, "REVOLT_BENCH_OUTPUT", "")
 
