@@ -257,6 +257,7 @@ end
 
 function environment_record(accelerator)
     cpu = first(Sys.cpu_info())
+    load_1m, load_5m, load_15m = Sys.loadavg()
     return Dict{String,Any}(
         "timestamp_utc" => string(Dates.now(Dates.UTC)),
         "host_name" => command_output(`hostname`),
@@ -265,6 +266,9 @@ function environment_record(accelerator)
         "architecture" => string(Sys.ARCH),
         "cpu_model" => cpu.model,
         "logical_cpu_threads" => Sys.CPU_THREADS,
+        "load_average_1m" => load_1m,
+        "load_average_5m" => load_5m,
+        "load_average_15m" => load_15m,
         "allowed_cpus" => allowed_cpu_list(),
         "scaling_governor_cpu0" => optional_file(
             "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor",
