@@ -74,7 +74,10 @@ The package benchmark measures the serialized HIL service boundary: one
 complete evolving-atmosphere graph step through a host-visible detector frame,
 followed by immediate adoption of a zero RTC command. RTC computation and
 fixed-arrival queueing are intentionally excluded. Run it with one Julia
-thread; select `cpu`, `amdgpu`, or `cuda`:
+thread; select `cpu`, `amdgpu`, or `cuda`. Accelerator runs default to one
+captured device graph for the complete frame, while CPU runs use direct stream
+execution. Set `REVOLT_BENCH_EXECUTION=stream` to make an explicit accelerator
+diagnostic comparison:
 
 ```bash
 julia --startup-file=no --project=benchmark \

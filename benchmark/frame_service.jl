@@ -34,6 +34,11 @@ const BACKEND_NAME = lowercase(get(
     "REVOLT_BENCH_BACKEND",
     isempty(ARGS) ? "cpu" : first(ARGS),
 ))
+const EXECUTION_NAME = lowercase(get(
+    ENV,
+    "REVOLT_BENCH_EXECUTION",
+    BACKEND_NAME == "cpu" ? "stream" : "captured",
+))
 const SAMPLE_COUNT = parse(Int, get(ENV, "REVOLT_BENCH_SAMPLES", "20"))
 const WARMUP_CYCLES = parse(Int, get(ENV, "REVOLT_BENCH_WARMUP", "5"))
 const RUN_COUNT = parse(Int, get(ENV, "REVOLT_BENCH_RUNS", "3"))
@@ -46,6 +51,15 @@ elseif BACKEND_NAME == "cuda"
 elseif BACKEND_NAME != "cpu"
     error("unsupported backend '$BACKEND_NAME'; use cpu, amdgpu, or cuda")
 end
+
+if EXECUTION_NAME == "captured" && BACKEND_NAME == "cpu"
+    error("captured graph execution requires an accelerator backend")
+elseif EXECUTION_NAME != "stream" && EXECUTION_NAME != "captured"
+    error("unsupported execution '$EXECUTION_NAME'; use stream or captured")
+end
+
+@inline graph_execution() = EXECUTION_NAME == "captured" ?
+    CapturedGraphExecution() : StreamGraphExecution()
 
 function command_output(command::Cmd)
     try
@@ -195,7 +209,7 @@ function measure_run(target, run_index::Int)
     system = InstrumentPackage.prepare_hil_system(
         target=target,
         profile=:grid_gaussian,
-        execution=StreamGraphExecution(),
+        execution=graph_execution(),
     )
     preparation_ns = Int64(time_ns() - preparation_start)
     boundary = system.boundary
@@ -300,13 +314,14 @@ function benchmark_evidence()
         for run_index in 1:RUN_COUNT
     ]
     return Dict{String,Any}(
-        "artifact_id" => "$(ARTIFACT_PREFIX)-FRAME-SERVICE-$(uppercase(BACKEND_NAME))",
+        "artifact_id" => "$(ARTIFACT_PREFIX)-FRAME-SERVICE-$(uppercase(BACKEND_NAME))-$(uppercase(EXECUTION_NAME))",
         "evidence_class" => "repeated warmed synchronized diagnostic profile",
         "contract" => Dict{String,Any}(
             "load_model" => "serial closed loop with immediate zero-command response",
             "arrival_model" => "the next frame starts only after the preceding command is adopted",
             "coordinated_omission_correction" => false,
-            "execution_policy" => "StreamGraphExecution",
+            "execution_policy" => EXECUTION_NAME == "captured" ?
+                "CapturedGraphExecution" : "StreamGraphExecution",
             "graph_profile" => "grid_gaussian",
             "frame_service_boundary" => "complete graph step through host-visible detector frame",
             "command_adoption_boundary" => "finite host command validation through target-ready command copy",
