@@ -36,9 +36,46 @@ end
     @test graph_name(calibration.graph) === :revolt_copper_hil_calibration
     @test size(hil_frame_buffer(calibration.boundary)) == (64, 64)
     @test all(iszero, calibration.uncompensated_opd)
-    @test step_hil_frame!(calibration.boundary) == UInt64(1)
+    sequence = step_hil_frame!(calibration.boundary)
+    @test sequence == UInt64(1)
     @test all(isfinite, hil_frame_buffer(calibration.boundary))
     @test sum(hil_frame_buffer(calibration.boundary)) > 0
+
+    flat_frame = copy(hil_frame_buffer(calibration.boundary))
+    command = hil_command_buffer(calibration.boundary)
+    fill!(command, 0.0f0)
+    command[139] = 2.0f-8
+    adopt_hil_command!(calibration.boundary, sequence)
+    sequence = step_hil_frame!(calibration.boundary)
+    positive_frame = copy(hil_frame_buffer(calibration.boundary))
+
+    fill!(command, 0.0f0)
+    command[139] = -2.0f-8
+    adopt_hil_command!(calibration.boundary, sequence)
+    @test step_hil_frame!(calibration.boundary) == UInt64(3)
+    negative_frame = hil_frame_buffer(calibration.boundary)
+    @test positive_frame != flat_frame
+    @test negative_frame != flat_frame
+    @test positive_frame != negative_frame
+    @test all(isfinite, positive_frame)
+    @test all(isfinite, negative_frame)
+end
+
+@testset "REVOLT Copper deterministic replay" begin
+    first_system = prepare_hil_system()
+    second_system = prepare_hil_system()
+    for expected_sequence in UInt64(1):UInt64(3)
+        first_sequence = step_hil_frame!(first_system.boundary)
+        second_sequence = step_hil_frame!(second_system.boundary)
+        @test first_sequence == expected_sequence
+        @test second_sequence == expected_sequence
+        @test hil_frame_buffer(first_system.boundary) ==
+            hil_frame_buffer(second_system.boundary)
+        @test graph_output(first_system.graph, Val(:atmosphere_opd)) ==
+            graph_output(second_system.graph, Val(:atmosphere_opd))
+        adopt_hil_command!(first_system.boundary, first_sequence)
+        adopt_hil_command!(second_system.boundary, second_sequence)
+    end
 end
 
 @testset "REVOLT Copper science diagnostics" begin
