@@ -9,6 +9,10 @@ using .PyRTCSharedMemory
 
 const PYRTC_STREAM_NAMES = ("wfs", "wfc", "signal", "signal2D")
 const WORKER_PREFIX = "REVOLT_COPPER_PYRTC_WORKER "
+const ATMOSPHERE_VALIDATION_BURN_IN_FRAMES = 10
+# SplitMix64 seed 1 produces approximately 21× mean Strehl improvement for
+# this deterministic fixture. Fifteen leaves a material regression margin.
+const REVOLT_COPPER_MINIMUM_STREHL_IMPROVEMENT = 15.0
 
 struct PyRTCProcessDefinition
     name::Symbol
@@ -18,6 +22,9 @@ struct PyRTCProcessDefinition
     signal_2d_shape::Tuple{Int,Int}
     command_count::Int
     poke::Float32
+    gain::Float32
+    control_rcond::Float32
+    iterations::Int
 end
 
 @inline process_definition() = PyRTCProcessDefinition(
@@ -28,12 +35,17 @@ end
     (30, 60),
     REVOLTCopperSim.command_count(),
     2.0f-8,
+    0.15f0,
+    5.0f-2,
+    300,
 )
 
 @inline prepare_calibration_system(::PyRTCProcessDefinition) =
     REVOLTCopperSim.prepare_calibration_system()
 @inline prepare_atmospheric_system(::PyRTCProcessDefinition) =
     REVOLTCopperSim.prepare_hil_system()
+@inline prepare_science_diagnostics() =
+    REVOLTCopperSim.prepare_science_diagnostics()
 
 struct ProcessStreams{W,C,S,D}
     wfs::W
@@ -382,62 +394,152 @@ function calibrate_interaction_matrix!(
     return flat_signal, interaction_matrix
 end
 
-function probe_interaction_columns!(
+function configure_worker_loop!(
     worker::PyRTCWorker,
     streams::ProcessStreams,
-    prepared,
-    signal::Vector{Float32},
-    command_indices::NTuple{N,Int};
-    poke::Float32,
-) where {N}
-    boundary = prepared.boundary
-    all(index -> index in eachindex(hil_command_buffer(boundary)),
-        command_indices) || throw(BoundsError(
-        hil_command_buffer(boundary),
-        command_indices,
-    ))
-    sequence, flat_signal = set_flat_reference!(
+    interaction_matrix::Matrix{Float32},
+    gain::Float32,
+    control_rcond::Float32,
+    temporary_directory::AbstractString,
+)
+    matrix_path = joinpath(temporary_directory, "interaction_matrix.f32")
+    open(matrix_path, "w") do io
+        write(io, interaction_matrix)
+    end
+    send_worker_command!(
         worker,
-        streams,
-        prepared,
-        signal,
+        "CONFIGURE $matrix_path $(Float64(gain)) " *
+        "$(Float64(control_rcond))",
+        "CONFIGURED";
+        timeout=30.0,
     )
-    interaction_columns = Matrix{Float32}(undef, length(signal), N)
-    positive_signal = similar(signal)
+    send_worker_command!(worker, "FLATTEN", "FLATTENED")
+    flat_command = zeros(Float32, size(interaction_matrix, 2))
+    read_next!(flat_command, streams.wfc; timeout=5.0)
+    all(iszero, flat_command) || error(
+        "pyRTC worker flatten command is nonzero",
+    )
+    return nothing
+end
 
-    for (column_index, command_index) in pairs(command_indices)
-        fill!(hil_command_buffer(boundary), 0.0f0)
-        hil_command_buffer(boundary)[command_index] = poke
-        adopt_hil_command!(boundary, sequence)
-        sequence = step_hil_frame!(boundary)
-        copyto!(
-            positive_signal,
-            process_frame!(
-                worker,
-                streams,
-                hil_frame_buffer(boundary),
-                signal,
-            ),
+@inline function root_mean_square(values::AbstractArray)
+    return sqrt(sum(abs2, values) / length(values))
+end
+
+function pupil_opd_rms(
+    opd::AbstractMatrix{<:AbstractFloat},
+    support::AbstractMatrix{Bool},
+)
+    axes(opd) == axes(support) || throw(DimensionMismatch(
+        "the pupil OPD and support must have identical axes",
+    ))
+    sample_count = 0
+    mean_opd = 0.0
+    sum_squared_difference = 0.0
+    for index in eachindex(opd, support)
+        support[index] || continue
+        sample_count += 1
+        value = Float64(opd[index])
+        difference = value - mean_opd
+        mean_opd += difference / sample_count
+        sum_squared_difference += difference * (value - mean_opd)
+    end
+    sample_count > 0 || error("the HIL reference pupil support is empty")
+    return sqrt(sum_squared_difference / sample_count)
+end
+
+function mean_from(values::Vector{<:Real}, first_index::Int)
+    first_index in eachindex(values) || throw(BoundsError(values, first_index))
+    total = 0.0
+    sample_count = 0
+    for index in first_index:lastindex(values)
+        total += Float64(values[index])
+        sample_count += 1
+    end
+    return total / sample_count
+end
+
+function close_atmospheric_loop!(
+    worker::PyRTCWorker,
+    streams::ProcessStreams,
+    definition::PyRTCProcessDefinition,
+    signal::Vector{Float32};
+    frames::Int=definition.iterations,
+)
+    frames > ATMOSPHERE_VALIDATION_BURN_IN_FRAMES || throw(ArgumentError(
+        "atmosphere validation requires more than " *
+        "$(ATMOSPHERE_VALIDATION_BURN_IN_FRAMES) frames",
+    ))
+    prepared = prepare_atmospheric_system(definition)
+    diagnostics = prepare_science_diagnostics()
+    boundary = prepared.boundary
+    command = zeros(Float32, definition.command_count)
+    open_loop_values = Vector{Float32}(undef, frames)
+    closed_loop_values = Vector{Float32}(undef, frames)
+    uncompensated_opd_rms_values = Vector{Float64}(undef, frames)
+    residual_opd_rms_values = Vector{Float64}(undef, frames)
+    pdm_command_rms_values = Vector{Float64}(undef, frames)
+    support = REVOLTCopperSim.science_pupil_support(diagnostics)
+    sequence = step_hil_frame!(boundary)
+
+    for frame_index in 1:frames
+        atmosphere_opd = graph_output(prepared.graph, Val(:atmosphere_opd))
+        residual_opd = graph_output(prepared.graph, Val(:pupil_opd))
+        REVOLTCopperSim.update_science_diagnostics!(
+            diagnostics,
+            atmosphere_opd,
+            residual_opd,
+        )
+        open_loop_values[frame_index] =
+            REVOLTCopperSim.open_loop_on_axis_strehl(diagnostics)
+        closed_loop_values[frame_index] =
+            REVOLTCopperSim.closed_loop_on_axis_strehl(diagnostics)
+        uncompensated_opd_rms_values[frame_index] =
+            pupil_opd_rms(atmosphere_opd, support)
+        residual_opd_rms_values[frame_index] =
+            pupil_opd_rms(residual_opd, support)
+        maximum(REVOLTCopperSim.open_loop_psf(diagnostics)) <= 1.001f0 || error(
+            "open-loop PSF exceeds its exact diffraction-limited peak",
+        )
+        maximum(REVOLTCopperSim.closed_loop_psf(diagnostics)) <= 1.001f0 || error(
+            "closed-loop PSF exceeds its exact diffraction-limited peak",
         )
 
-        fill!(hil_command_buffer(boundary), 0.0f0)
-        hil_command_buffer(boundary)[command_index] = -poke
-        adopt_hil_command!(boundary, sequence)
-        sequence = step_hil_frame!(boundary)
-        negative_signal = process_frame!(
+        process_frame!(
             worker,
             streams,
             hil_frame_buffer(boundary),
-            signal,
+            signal;
+            command="STEP",
+            response="STEPPED",
         )
-        @views @. interaction_columns[:, column_index] =
-            (positive_signal - negative_signal) / (2 * poke)
+        read_next!(command, streams.wfc; timeout=5.0)
+        pdm_command_rms_values[frame_index] = root_mean_square(command)
+        copyto!(hil_command_buffer(boundary), command)
+        adopt_hil_command!(boundary, sequence)
+        frame_index < frames && (sequence = step_hil_frame!(boundary))
     end
 
-    fill!(hil_command_buffer(boundary), 0.0f0)
-    adopt_hil_command!(boundary, sequence)
-    reset_hil_boundary!(boundary)
-    return flat_signal, interaction_columns
+    first_steady_frame = ATMOSPHERE_VALIDATION_BURN_IN_FRAMES + 1
+    mean_open_loop_on_axis_strehl =
+        mean_from(open_loop_values, first_steady_frame)
+    mean_closed_loop_on_axis_strehl =
+        mean_from(closed_loop_values, first_steady_frame)
+    mean_uncompensated_opd_rms_m =
+        mean_from(uncompensated_opd_rms_values, first_steady_frame)
+    mean_residual_opd_rms_m =
+        mean_from(residual_opd_rms_values, first_steady_frame)
+    mean_pdm_command_rms_m =
+        mean_from(pdm_command_rms_values, first_steady_frame)
+    return (;
+        mean_open_loop_on_axis_strehl,
+        mean_closed_loop_on_axis_strehl,
+        improvement=mean_closed_loop_on_axis_strehl /
+            mean_open_loop_on_axis_strehl,
+        mean_uncompensated_opd_rms_m,
+        mean_residual_opd_rms_m,
+        mean_pdm_command_rms_m,
+    )
 end
 
 function run_revolt_copper_validation()
@@ -445,55 +547,71 @@ function run_revolt_copper_validation()
     calibration = prepare_calibration_system(definition)
     streams = create_process_streams(definition)
     worker = nothing
-    command_indices = (70, 105, 139, 173, 208)
     return mktempdir() do temporary_directory
         try
             worker = start_worker(definition, temporary_directory)
             signal = zeros(Float32, definition.signal_shape)
-            flat_signal, interaction_columns = probe_interaction_columns!(
+            flat_signal, interaction_matrix = calibrate_interaction_matrix!(
                 worker,
                 streams,
                 calibration,
-                signal,
-                command_indices;
+                signal;
                 poke=definition.poke,
+                report_progress=true,
             )
             norm(flat_signal) <= 1.0f-5 || error(
                 "REVOLT Copper flat reference left a nonzero residual: " *
                 "$(norm(flat_signal))",
             )
-            all(isfinite, interaction_columns) || error(
-                "REVOLT Copper interaction probes contain a non-finite value",
-            )
-            response_norms = Tuple(
-                norm(@view(interaction_columns[:, column_index]))
-                for column_index in axes(interaction_columns, 2)
-            )
-            all(>(0), response_norms) || error(
-                "REVOLT Copper interaction probes contain a zero response",
-            )
-            singular_values = svdvals(interaction_columns)
-            rank_tolerance = maximum(singular_values) * 1.0f-4
-            probe_rank = count(>(rank_tolerance), singular_values)
-            probe_rank == length(command_indices) || error(
-                "REVOLT Copper interaction probes have rank $probe_rank; " *
-                "expected $(length(command_indices))",
+            all(isfinite, interaction_matrix) || error(
+                "REVOLT Copper interaction matrix contains a non-finite value",
             )
 
-            atmospheric = prepare_atmospheric_system(definition)
-            step_hil_frame!(atmospheric.boundary)
-            process_frame!(
+            singular_values = svdvals(interaction_matrix)
+            maximum_singular_value = maximum(singular_values)
+            retained_tolerance =
+                maximum_singular_value * definition.control_rcond
+            retained_interaction_rank =
+                count(>(retained_tolerance), singular_values)
+            minimum_retained_rank = (4 * definition.command_count) ÷ 5
+            retained_interaction_rank >= minimum_retained_rank || error(
+                "REVOLT Copper interaction matrix retains only " *
+                "$retained_interaction_rank control directions at rcond=" *
+                "$(definition.control_rcond); expected at least " *
+                "$minimum_retained_rank",
+            )
+            retained_interaction_condition =
+                maximum_singular_value /
+                singular_values[retained_interaction_rank]
+
+            configure_worker_loop!(
                 worker,
                 streams,
-                hil_frame_buffer(atmospheric.boundary),
+                interaction_matrix,
+                definition.gain,
+                definition.control_rcond,
+                temporary_directory,
+            )
+            atmosphere = close_atmospheric_loop!(
+                worker,
+                streams,
+                definition,
                 signal,
             )
-            all(isfinite, signal) || error(
-                "REVOLT Copper atmospheric Pyramid signal is non-finite",
+            atmosphere.mean_closed_loop_on_axis_strehl > 0.35 || error(
+                "REVOLT Copper did not produce a usable corrected on-axis " *
+                "PSF: mean Strehl = " *
+                "$(atmosphere.mean_closed_loop_on_axis_strehl)",
             )
-            atmospheric_signal_norm = norm(signal)
-            atmospheric_signal_norm > 0 || error(
-                "REVOLT Copper atmospheric Pyramid signal is zero",
+            atmosphere.improvement >
+                REVOLT_COPPER_MINIMUM_STREHL_IMPROVEMENT || error(
+                "REVOLT Copper did not improve mean on-axis Strehl " *
+                "sufficiently: ratio = $(atmosphere.improvement)",
+            )
+            atmosphere.mean_residual_opd_rms_m <
+                0.4 * atmosphere.mean_uncompensated_opd_rms_m || error(
+                "REVOLT Copper residual pupil OPD RMS was not reduced " *
+                "sufficiently",
             )
             stop_worker!(worker)
 
@@ -502,12 +620,11 @@ function run_revolt_copper_validation()
                 frame_shape=definition.frame_shape,
                 signal_length=length(signal),
                 command_count=definition.command_count,
-                command_indices,
-                response_norms,
-                probe_rank,
-                probe_condition=maximum(singular_values) /
-                    minimum(singular_values),
-                atmospheric_signal_norm,
+                retained_interaction_rank,
+                retained_interaction_condition,
+                numerical_interaction_condition=
+                    maximum_singular_value / minimum(singular_values),
+                atmosphere...,
             )
         finally
             !isnothing(worker) && stop_worker_noexcept!(worker)
@@ -518,14 +635,43 @@ end
 
 function revolt_copper_main()
     result = run_revolt_copper_validation()
-    println("REVOLT Copper/native-SHM pyRTC process probe passed")
+    println("REVOLT Copper/native-SHM pyRTC process loop passed")
     println("  detector frame shape: ", result.frame_shape)
     println("  signal length: ", result.signal_length)
     println("  PDM command length: ", result.command_count)
-    println("  probed commands: ", result.command_indices)
-    println("  probe rank: ", result.probe_rank)
-    println("  probe condition: ", result.probe_condition)
-    println("  atmospheric signal norm: ", result.atmospheric_signal_norm)
+    println(
+        "  retained interaction rank: ",
+        result.retained_interaction_rank,
+    )
+    println(
+        "  retained interaction condition: ",
+        result.retained_interaction_condition,
+    )
+    println(
+        "  numerical interaction condition: ",
+        result.numerical_interaction_condition,
+    )
+    println(
+        "  atmospheric mean open-loop on-axis Strehl: ",
+        result.mean_open_loop_on_axis_strehl,
+    )
+    println(
+        "  atmospheric mean closed-loop on-axis Strehl: ",
+        result.mean_closed_loop_on_axis_strehl,
+    )
+    println("  atmospheric on-axis Strehl improvement: ", result.improvement)
+    println(
+        "  atmospheric mean OPD RMS: ",
+        1.0e9 * result.mean_uncompensated_opd_rms_m,
+        " -> ",
+        1.0e9 * result.mean_residual_opd_rms_m,
+        " nm",
+    )
+    println(
+        "  mean PDM surface-OPD command RMS: ",
+        1.0e9 * result.mean_pdm_command_rms_m,
+        " nm",
+    )
     return nothing
 end
 

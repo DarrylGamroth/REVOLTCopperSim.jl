@@ -46,11 +46,12 @@ frame = hil_frame_buffer(system.boundary)
 julia --startup-file=no --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
 ```
 
-The opt-in process test sends this package's 64×64 Pyramid frames to an
-independent pyRTC process, verifies pyRTC's 1,296-element signal geometry,
-probes five independent HSDM277 directions, and processes an evolved
-atmospheric frame. Install the pinned official pyRTC revision into an isolated
-Python environment, then run:
+The opt-in process test calibrates this package's complete 277-command model
+through its 64×64 Pyramid frames, installs the resulting 1,296×277
+interaction matrix in an independent pyRTC process, and closes a 300-frame
+evolving-atmosphere loop. It verifies retained interaction rank, reconstructor
+conditioning, on-axis Strehl improvement, and pupil-OPD reduction. Install the
+pinned official pyRTC revision into an isolated Python environment, then run:
 
 ```bash
 python3 -m venv .venv-pyrtc
@@ -63,10 +64,11 @@ REVOLT_COPPER_PYRTC_TESTS=1 julia --startup-file=no --project=. \
 ```
 
 The Python environment is not part of the package runtime. The pyRTC test is
-off by default because even its five-direction probe executes the complete
-480-sample modulated Pyramid propagation. A qualified full-matrix gate remains
-future work because the current HSDM influence and Copper reconstructor are
-explicitly provisional.
+off by default because its full interaction matrix and atmospheric loop execute
+the complete 480-sample, 32-point modulated Pyramid propagation. This validates
+the self-consistency of the maintained simulated instrument; the HSDM influence
+model and resulting Copper reconstructor remain explicitly provisional rather
+than measured instrument calibrations.
 
 ## Frame-service benchmark
 
