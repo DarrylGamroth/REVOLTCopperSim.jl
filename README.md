@@ -70,6 +70,13 @@ the self-consistency of the maintained simulated instrument; the HSDM influence
 model and resulting Copper reconstructor remain explicitly provisional rather
 than measured instrument calibrations.
 
+With the pinned pyRTC revision and deterministic SplitMix64 atmosphere seed,
+the maintained gate retains 221 of 277 interaction directions at its 5%
+singular-value cutoff. Over 300 atmospheric frames, the steady-state mean
+on-axis Strehl increases from 0.0208 to 0.437 and pupil OPD RMS decreases from
+290 nm to 79.8 nm. These values are regression references for this simulated
+instrument, not measured REVOLT Copper performance.
+
 ## Frame-service benchmark
 
 The package benchmark measures the serialized HIL service boundary: one
