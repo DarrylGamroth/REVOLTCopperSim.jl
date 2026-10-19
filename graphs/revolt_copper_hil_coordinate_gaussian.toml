@@ -14,8 +14,9 @@
 # - REVOLT/Julia/contracts/revolt/common.toml supplies the 1.22 m, 480-sample
 #   telescope and 2 ms simulation sample period.
 # - REVOLT/Julia/contracts/revolt/pwfs.toml supplies the modulated Pyramid
-#   threshold, modulation radius/point count, light ratio, and visible-source
-#   flux scaling. The effective V magnitude below includes its 0.5 flux scale.
+#   modulation radius/point count and visible-source flux scaling.
+#   Estimator thresholds and pupil selection belong to the external RTC.
+#   The effective V magnitude below includes its 0.5 flux scale.
 # - REVOLT/Julia/contracts/revolt/cameras.toml supplies the iXon EMCCD values.
 # - heart/revolt-rtc/config/copper_config_sim.yaml supplies the operational
 #   64-by-64 WFS frame and 30-by-30 Pyramid-pupil dimensions.
@@ -101,11 +102,9 @@ central_obstruction_ratio = 0.0
 pupil_reflectivity = 1.0
 aperture_revision = 1
 pupil_samples = 30
-threshold = 0.1
 modulation = 5.0
 modulation_points = 32
 modulation_propagation_strategy = "shifted_mask"
-light_ratio = 0.1
 diffraction_padding = 2
 psf_centering = true
 n_pix_separation = 2

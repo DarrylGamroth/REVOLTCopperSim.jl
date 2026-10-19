@@ -14,7 +14,7 @@ HIL boundaries.
 - Use immutable configuration and prepared execution owners; preallocate
   repeated-frame storage.
 - Use explicit seeded RNG ownership for deterministic validation.
-- Validate CPU locally first. Use the local AMDGPU host and WSL CUDA only for
+- Validate CPU locally first. Use local AMDGPU and CUDA devices only for
   changes that affect accelerator execution.
 - Commit generated manifests only in a deliberately maintained application or
   validation environment, not at the package root.

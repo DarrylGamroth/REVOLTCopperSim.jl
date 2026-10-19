@@ -1,0 +1,19 @@
+[deps]
+AdaptiveOpticsCalibration = "3c8b5851-926e-4ebb-af30-f8544b98d45f"
+AdaptiveOpticsSim = "002fb5eb-ad68-44a0-adbe-b299bfc2febc"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+REVOLTCopperSim = "1e096dfd-8d59-466f-967d-e58cf577fca9"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+UnsafeArrays = "c4a57d5a-5b31-53a6-b365-19f8c011fbd6"
+
+[sources]
+REVOLTCopperSim = {path = ".."}
+
+[compat]
+LinearAlgebra = "1.11"
+Test = "1.11"
+AdaptiveOpticsCalibration = "0.17"
+AdaptiveOpticsSim = "0.2"
+REVOLTCopperSim = "0.2"
+UnsafeArrays = "1"
+julia = "1.12"
