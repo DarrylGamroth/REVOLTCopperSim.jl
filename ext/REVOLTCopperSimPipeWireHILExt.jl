@@ -5,7 +5,23 @@ using AdaptiveOpticsSim.AlgorithmGraphs
 using AdaptiveOpticsSim.AlgorithmGraphs: prepared_graph_node
 using AdaptiveOpticsSim.Detectors: detector_acquisition_plan
 using AdaptiveOpticsSimPipeWireHIL
+using AdaptiveOpticsSimPipeWireHIL: validate_hil_system, validate_wire_contract
 using PipeWireAO: SPA
+
+# Exact scientific and existing REVOLT deployment contracts. HEART is admitted
+# only as its explicit paired raw-pixel/metre-OPD command contract.
+const _WIRE_CONTRACTS = (
+    (; frame_encoding=:float32, frame_schema=REVOLTCopperSim._FRAME_SCHEMA,
+        command_schema=REVOLTCopperSim._PDM_COMMAND_SCHEMA, command_scale=1f0),
+    (; frame_encoding=:float32, frame_schema=REVOLTCopperSim._FRAME_SCHEMA,
+        command_schema="org.calculon.ao.demanded-pdm-command/1", command_scale=1f-6),
+    (; frame_encoding=:uint16, frame_schema="org.calculon.ao.raw-detector-pixels/1",
+        command_schema=REVOLTCopperSim._PDM_COMMAND_SCHEMA, command_scale=1f0),
+    (; frame_encoding=:uint16, frame_schema="org.calculon.ao.raw-detector-pixels/1",
+        command_schema="org.calculon.ao.demanded-pdm-command/1", command_scale=1f-6),
+    (; frame_encoding=:uint16, frame_schema="org.heart.std-wfs.raw-pixels/1",
+        command_schema="org.heart.std-dm.actuator-command/1", command_scale=1f0),
+)
 
 function REVOLTCopperSim.pipewire_configuration(
     system::NamedTuple,
@@ -18,54 +34,24 @@ function REVOLTCopperSim.pipewire_configuration(
     command_schema::Union{Nothing,AbstractString}=nothing,
     command_scale::Real=1f0,
 )
-    graph, boundary = system.graph, system.boundary
-    graph === boundary.graph || throw(ArgumentError(
-        "system graph and HIL boundary must belong to the same prepared plant"))
+    validate_hil_system(system; command_input=:pdm_command,
+        frame_output=:pwfs_frame, command_shape=(command_count(),), frame_shape=(64, 64))
+    graph = system.graph
     detector = prepared_graph_node(graph, :detector)
     pdm = prepared_graph_node(graph, :pdm)
     plan = detector_acquisition_plan(detector.prepared)
-    boundary.command_input === graph_input(graph, :pdm_command) === pdm.pdm_command ||
-        throw(ArgumentError("HIL command must bind the REVOLT HSDM277 input"))
-    boundary.frame_output === graph_output(graph, :pwfs_frame) === detector.output ||
-        throw(ArgumentError("HIL frame must bind the REVOLT Copper detector output"))
-    size(hil_command_buffer(boundary)) == (command_count(),) &&
-        eltype(hil_command_buffer(boundary)) === Float32 || throw(ArgumentError(
-        "REVOLT HSDM277 commands require 277 Float32 elements"))
-    size(hil_frame_buffer(boundary)) == plan.output_shape == (64, 64) &&
-        eltype(hil_frame_buffer(boundary)) === Float32 || throw(ArgumentError(
-        "REVOLT Copper frames require a 64×64 Float32 detector"))
+    graph_input(graph, :pdm_command) === pdm.pdm_command || throw(ArgumentError(
+        "HIL command must bind the REVOLT HSDM277 input"))
+    graph_output(graph, :pwfs_frame) === detector.output || throw(ArgumentError(
+        "HIL frame must bind the REVOLT Copper detector output"))
+    plan.output_shape == (64, 64) || throw(ArgumentError(
+        "REVOLT Copper requires a 64×64 detector plan"))
 
-    scientific_frame_schema = REVOLTCopperSim._FRAME_SCHEMA
-    metre_command_schema = REVOLTCopperSim._PDM_COMMAND_SCHEMA
-    # Existing REVOLT operational deployment contracts: raw ADC pixels and
-    # demanded HSDM277 surface-OPD commands in micrometres.
-    adc_frame_schema = "org.calculon.ao.raw-detector-pixels/1"
-    micrometre_command_schema = "org.calculon.ao.demanded-pdm-command/1"
-    # This explicit pair is the existing REVOLT HEART deployment contract;
-    # it does not declare arbitrary HEART actuator products equivalent to OPD.
-    heart_frame_schema = "org.heart.std-wfs.raw-pixels/1"
-    heart_command_schema = "org.heart.std-dm.actuator-command/1"
-    command_schema === nothing && (command_schema = metre_command_schema)
-    if frame_schema == heart_frame_schema || command_schema == heart_command_schema
-        frame_encoding === :uint16 && frame_schema == heart_frame_schema &&
-            command_schema == heart_command_schema && command_scale == 1 ||
-            throw(ArgumentError("REVOLT HEART transport requires its explicit UInt16 raw-pixels " *
-                "and metre-OPD actuator-command schema pair with command_scale=1"))
-    else
-        if frame_encoding === :float32
-            frame_schema === nothing && (frame_schema = scientific_frame_schema)
-            frame_schema == scientific_frame_schema || throw(ArgumentError(
-                "Float32 transport must preserve the scientific frame schema"))
-        elseif frame_encoding === :uint16
-            frame_schema == adc_frame_schema ||
-                throw(ArgumentError("UInt16 ADC transport requires the explicit operational raw-detector-pixels schema"))
-        else
-            throw(ArgumentError("frame_encoding must be :float32 or :uint16"))
-        end
-        ((command_schema == metre_command_schema && command_scale == 1) ||
-         (command_schema == micrometre_command_schema && Float32(command_scale) == 1f-6)) ||
-            throw(ArgumentError("command schema and scale must declare metre OPD (1) or micrometre OPD (1f-6)"))
-    end
+    frame_schema === nothing && frame_encoding === :float32 &&
+        (frame_schema = REVOLTCopperSim._FRAME_SCHEMA)
+    command_schema === nothing && (command_schema = REVOLTCopperSim._PDM_COMMAND_SCHEMA)
+    validate_wire_contract(frame_encoding, frame_schema, command_schema,
+        command_scale, _WIRE_CONTRACTS)
 
     # Nanosecond quantization removes Float32 representation error without
     # assuming an integer-Hz cadence or substituting detector exposure for it.

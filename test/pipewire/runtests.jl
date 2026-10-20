@@ -35,6 +35,24 @@ using Test
         @test explicit.frame_schema == "org.calculon.ao.raw-detector-pixels/1"
         @test explicit.command_schema == "org.calculon.ao.demanded-pdm-command/1"
         @test explicit.command_scale === 1f-6
+        # Preserve the explicit scientific/Calculon combinations.
+        float_micrometres = REVOLTCopperSim.pipewire_configuration(system, "test";
+            command_schema="org.calculon.ao.demanded-pdm-command/1", command_scale=1e-6)
+        @test float_micrometres.frame_encoding === :float32
+        @test float_micrometres.frame_schema == configuration.frame_schema
+        @test float_micrometres.command_scale === 1f-6
+        adc_metres = REVOLTCopperSim.pipewire_configuration(system, "test";
+            frame_encoding=:uint16, frame_schema="org.calculon.ao.raw-detector-pixels/1")
+        @test adc_metres.command_schema == configuration.command_schema
+        @test adc_metres.command_scale === 1f0
+        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
+            frame_encoding=:float64)
+        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
+            command_scale=NaN)
+        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
+            command_scale=Inf)
+        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
+            command_scale=0)
         @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
             frame_encoding=:uint16)
         @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
