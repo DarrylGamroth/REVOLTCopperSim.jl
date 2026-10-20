@@ -27,7 +27,7 @@ builders.
 
 The simulation uses registered AdaptiveOpticsSim 0.2.1 and test-only
 AdaptiveOpticsCalibration 0.17. Add General and the package registry, then
-instantiate this checkout with Julia 1.12:
+instantiate this checkout with Julia 1.13:
 
 ```bash
 git clone https://github.com/DarrylGamroth/REVOLTCopperSim.jl.git
