@@ -10,7 +10,7 @@ REVOLTCopperSim = {path = "../.."}
 
 [compat]
 AdaptiveOpticsSim = "0.2.1"
-AdaptiveOpticsSimPipeWireHIL = "0.2.1"
+AdaptiveOpticsSimPipeWireHIL = "0.2.2"
 REVOLTCopperSim = "0.2"
 PipeWireAO = "0.6.18"
 Test = "1"

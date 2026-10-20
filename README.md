@@ -50,7 +50,7 @@ frame = hil_frame_buffer(system.boundary)
 
 ## Shared PipeWire HIL transport
 
-The optional transport uses released `AdaptiveOpticsSimPipeWireHIL` 0.2.1
+The optional transport uses released `AdaptiveOpticsSimPipeWireHIL` 0.2.2
 and `PipeWireAO`. Install those packages in the application environment, then
 attach the shared adapter to the prepared plant:
 
