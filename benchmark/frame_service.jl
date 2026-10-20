@@ -2,11 +2,11 @@ using AdaptiveOpticsSim
 using AdaptiveOpticsSim.AlgorithmGraphs
 using Dates
 using LinearAlgebra
+using Pkg
 using Statistics
 using TOML
 
 const PACKAGE_ROOT = dirname(@__DIR__)
-const AOS_ROOT = normpath(joinpath(PACKAGE_ROOT, "..", "AdaptiveOpticsSim.jl"))
 const PACKAGE_DIRECTORY_NAME = basename(PACKAGE_ROOT)
 
 if PACKAGE_DIRECTORY_NAME == "REVOLTClassicSim.jl"
@@ -158,6 +158,22 @@ function git_environment(root::AbstractString)
     )
 end
 
+function adaptive_optics_sim_source()
+    package_info = Pkg.dependencies()[Base.PkgId(AdaptiveOpticsSim).uuid]
+    source_path = package_info.source
+    source = Dict{String,Any}(
+        "source_path" => source_path,
+        "version" => string(package_info.version),
+        "tree_hash" => something(package_info.tree_hash, ""),
+        "is_tracking_path" => package_info.is_tracking_path,
+        "is_tracking_repo" => package_info.is_tracking_repo,
+    )
+    if ispath(joinpath(source_path, ".git"))
+        merge!(source, git_environment(source_path))
+    end
+    return source
+end
+
 function timer_overhead_ns(samples::Int=10_000)
     values = Vector{Int64}(undef, samples)
     for index in eachindex(values)
@@ -306,7 +322,7 @@ function environment_record(accelerator)
         "backend" => BACKEND_NAME,
         "accelerator" => accelerator,
         "package_source" => git_environment(PACKAGE_ROOT),
-        "adaptive_optics_sim_source" => git_environment(AOS_ROOT),
+        "adaptive_optics_sim_source" => adaptive_optics_sim_source(),
     )
 end
 
