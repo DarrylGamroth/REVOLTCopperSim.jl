@@ -21,12 +21,8 @@ function REVOLTCopperSim.pipewire_configuration(
     graph, boundary = system.graph, system.boundary
     graph === boundary.graph || throw(ArgumentError(
         "system graph and HIL boundary must belong to the same prepared plant"))
-    graph_name(graph) in (:revolt_copper_hil_grid_gaussian,
-        :revolt_copper_hil_coordinate_gaussian) || throw(ArgumentError(
-        "expected a maintained REVOLT Copper HIL graph"))
     detector = prepared_graph_node(graph, :detector)
     pdm = prepared_graph_node(graph, :pdm)
-    atmosphere = prepared_graph_node(graph, :atmosphere)
     plan = detector_acquisition_plan(detector.prepared)
     boundary.command_input === graph_input(graph, :pdm_command) === pdm.pdm_command ||
         throw(ArgumentError("HIL command must bind the REVOLT HSDM277 input"))
@@ -39,8 +35,8 @@ function REVOLTCopperSim.pipewire_configuration(
         eltype(hil_frame_buffer(boundary)) === Float32 || throw(ArgumentError(
         "REVOLT Copper frames require a 64×64 Float32 detector"))
 
-    scientific_frame_schema = "org.revolt.copper.pwfs-frame.f32/1"
-    metre_command_schema = "org.revolt.hsdm277.actuator-surface-opd-m.f32/1"
+    scientific_frame_schema = REVOLTCopperSim._FRAME_SCHEMA
+    metre_command_schema = REVOLTCopperSim._PDM_COMMAND_SCHEMA
     # Existing REVOLT operational deployment contracts: raw ADC pixels and
     # demanded HSDM277 surface-OPD commands in micrometres.
     adc_frame_schema = "org.calculon.ao.raw-detector-pixels/1"
@@ -73,8 +69,14 @@ function REVOLTCopperSim.pipewire_configuration(
 
     # Nanosecond quantization removes Float32 representation error without
     # assuming an integer-Hz cadence or substituting detector exposure for it.
-    period_ns = round(Int, Float64(atmosphere.atmosphere_step) * 1e9)
-    period_ns > 0 || throw(ArgumentError("atmosphere step must span a positive nanosecond period"))
+    frame_period_s = system.frame_period_s
+    if hasproperty(graph.nodes, :atmosphere)
+        atmosphere = prepared_graph_node(graph, :atmosphere)
+        frame_period_s == atmosphere.atmosphere_step || throw(ArgumentError(
+            "prepared frame period must match the atmosphere model-time step"))
+    end
+    period_ns = round(Int, Float64(frame_period_s) * 1e9)
+    period_ns > 0 || throw(ArgumentError("prepared frame period must span a positive nanosecond period"))
     divisor = gcd(1_000_000_000, period_ns)
     return PipeWireHILConfiguration(;
         remote, frame_node_name, command_node_name, timeout_ns,

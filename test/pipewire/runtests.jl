@@ -71,29 +71,34 @@ using Test
         wrong_boundary = prepare_graph_hil_boundary(system.graph;
             command_input=:pdm_command, frame_output=:pupil_opd)
         @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(
-            (; system.graph, boundary=wrong_boundary), "test")
+            (; system..., boundary=wrong_boundary), "test")
         @test graph_step_sequence(system.graph) == 0
     end
 
-    # A changed model-time step and detector exposure must be read from the
-    # already resolved plant. No filename defaults or positional node lookup.
-    mktempdir() do directory
-        graph_text = replace(read(REVOLTCopperSim.graph_path(), String),
-            "atmosphere_step = 0.002" => "atmosphere_step = 0.003",
-            "exposure_duration_s = 0.002" => "exposure_duration_s = 0.001")
-        path = joinpath(directory, "modified.toml")
-        write(path, graph_text)
-        definition = load_algorithm_graph(path;
-            bindings=REVOLTCopperSim._graph_bindings(:grid_gaussian, HostComputeDevice()))
-        graph = prepare_algorithm_graph(definition)
-        boundary = prepare_graph_hil_boundary(graph;
-            command_input=:pdm_command, frame_output=:pwfs_frame)
-        configuration = REVOLTCopperSim.pipewire_configuration((; graph, boundary), "test")
-        @test (configuration.rate.num, configuration.rate.denom) == (1000, 3)
-        @test configuration.exposure_duration_ns == 1_000_000
-        @test graph_step_sequence(graph) == 0
-        other = REVOLTCopperSim.prepare_hil_system()
-        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(
-            (; graph=other.graph, boundary), "test")
+    # Resolve a distinct cadence and exposure through the Julia builder.
+    definition = REVOLTCopperSim._graph_definition(:grid_gaussian, HostComputeDevice();
+        atmosphere_step=0.003, exposure_duration_s=0.001)
+    graph = prepare_algorithm_graph(definition)
+    boundary = prepare_graph_hil_boundary(graph;
+        command_input=:pdm_command, frame_output=:pwfs_frame)
+    configuration = REVOLTCopperSim.pipewire_configuration(
+        (; graph, boundary, frame_period_s=0.003f0), "test")
+    @test (configuration.rate.num, configuration.rate.denom) == (1000, 3)
+    @test configuration.exposure_duration_ns == 1_000_000
+    @test graph_step_sequence(graph) == 0
+    other = REVOLTCopperSim.prepare_hil_system()
+    @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(
+        (; other..., boundary), "test")
+    @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(
+        (; other..., frame_period_s=0.003f0), "test")
+
+    for profile in REVOLTCopperSim.supported_profiles()
+        calibration = REVOLTCopperSim.prepare_calibration_system(; profile)
+        configuration = REVOLTCopperSim.pipewire_configuration(calibration, "test")
+        @test (configuration.rate.num, configuration.rate.denom) == (500, 1)
+        @test configuration.exposure_duration_ns == 2_000_000
+        @test configuration.frame_encoding === :float32
+        @test configuration.command_scale === 1f0
+        @test graph_step_sequence(calibration.graph) == 0
     end
 end

@@ -93,16 +93,15 @@ end
 
 @testset "REVOLT Copper graph profiles" begin
     @test supported_profiles() == (:coordinate_gaussian, :grid_gaussian)
-    @test basename(graph_path()) ==
-        "revolt_copper_hil_grid_gaussian.toml"
-    @test basename(graph_path(:coordinate_gaussian)) ==
-        "revolt_copper_hil_coordinate_gaussian.toml"
-    @test_throws ArgumentError graph_path(:unknown)
+    @test_throws ArgumentError prepare_hil_system(; profile=:unknown)
+    @test_throws ArgumentError prepare_calibration_system(; profile=:unknown)
 
     for profile in supported_profiles()
         system = prepare_hil_system(; profile)
         graph = system.graph
         boundary = system.boundary
+        @test system.frame_period_s === 0.002f0
+        @test keys(graph.nodes) == (:atmosphere, :pdm, :pupil_opd_composition, :pwfs, :detector)
         sequence = step_hil_frame!(boundary)
         @test sequence == UInt64(1)
         @test graph_name(graph) === Symbol("revolt_copper_hil_", profile)

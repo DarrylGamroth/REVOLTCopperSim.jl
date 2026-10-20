@@ -17,6 +17,12 @@ Both retain the 480-sample pupil, 32-point shifted-mask Pyramid propagation,
 a measured HSDM277 influence calibration or a qualified Copper pixel
 reconstructor.
 
+Instrument topology and the shared production/calibration prescription are
+constructed in Julia in [`src/graphs.jl`](src/graphs.jl). Both deformable-mirror
+profiles use the same scientific settings. TOML is reserved for experiment
+settings and calibration references; graph topology is defined by the Julia
+builders.
+
 ## Local use
 
 The simulation uses registered AdaptiveOpticsSim 0.2. Add General and the
@@ -66,7 +72,7 @@ The defaults publish the 64×64 Float32 scientific detector schema
 `org.revolt.copper.pwfs-frame.f32/1` and receive 277 Float32 HSDM277
 surface-OPD commands in metres. The atmosphere advances by 2 ms per frame
 (500 Hz); the detector exposure is 2 ms. Configuration reads these
-values from the prepared plant and checks its boundary bindings. It does not
+values from the prepared context and detector plan and checks its boundary bindings. It does not
 rebuild the plant. Native, HEART, and pyRTC controllers connect through the
 ordinary PipeWireAO routes using compatible schemas, independently of this
 plant package.
