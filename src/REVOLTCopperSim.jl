@@ -41,7 +41,10 @@ Endpoint keywords are `frame_node_name`, `command_node_name`, and `timeout_ns`.
 UInt16 ADC transport requires `frame_encoding=:uint16` and an explicit distinct
 `frame_schema="org.calculon.ao.raw-detector-pixels/1"`. Micrometre OPD commands
 require the explicit `command_schema="org.calculon.ao.demanded-pdm-command/1"` with
-`command_scale=1f-6`. Conversions apply only at the transport boundary.
+`command_scale=1f-6`. The existing REVOLT HEART deployment requires its explicit
+`frame_encoding=:uint16`, `frame_schema="org.heart.std-wfs.raw-pixels/1"`,
+`command_schema="org.heart.std-dm.actuator-command/1"`, and `command_scale=1` pair.
+Conversions apply only at the transport boundary.
 """
 function pipewire_configuration end
 

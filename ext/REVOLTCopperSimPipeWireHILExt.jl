@@ -45,20 +45,31 @@ function REVOLTCopperSim.pipewire_configuration(
     # demanded HSDM277 surface-OPD commands in micrometres.
     adc_frame_schema = "org.calculon.ao.raw-detector-pixels/1"
     micrometre_command_schema = "org.calculon.ao.demanded-pdm-command/1"
-    if frame_encoding === :float32
-        frame_schema === nothing && (frame_schema = scientific_frame_schema)
-        frame_schema == scientific_frame_schema || throw(ArgumentError(
-            "Float32 transport must preserve the scientific frame schema"))
-    elseif frame_encoding === :uint16
-        frame_schema == adc_frame_schema ||
-            throw(ArgumentError("UInt16 ADC transport requires the explicit operational raw-detector-pixels schema"))
-    else
-        throw(ArgumentError("frame_encoding must be :float32 or :uint16"))
-    end
+    # This explicit pair is the existing REVOLT HEART deployment contract;
+    # it does not declare arbitrary HEART actuator products equivalent to OPD.
+    heart_frame_schema = "org.heart.std-wfs.raw-pixels/1"
+    heart_command_schema = "org.heart.std-dm.actuator-command/1"
     command_schema === nothing && (command_schema = metre_command_schema)
-    ((command_schema == metre_command_schema && command_scale == 1) ||
-     (command_schema == micrometre_command_schema && Float32(command_scale) == 1f-6)) ||
-        throw(ArgumentError("command schema and scale must declare metre OPD (1) or micrometre OPD (1f-6)"))
+    if frame_schema == heart_frame_schema || command_schema == heart_command_schema
+        frame_encoding === :uint16 && frame_schema == heart_frame_schema &&
+            command_schema == heart_command_schema && command_scale == 1 ||
+            throw(ArgumentError("REVOLT HEART transport requires its explicit UInt16 raw-pixels " *
+                "and metre-OPD actuator-command schema pair with command_scale=1"))
+    else
+        if frame_encoding === :float32
+            frame_schema === nothing && (frame_schema = scientific_frame_schema)
+            frame_schema == scientific_frame_schema || throw(ArgumentError(
+                "Float32 transport must preserve the scientific frame schema"))
+        elseif frame_encoding === :uint16
+            frame_schema == adc_frame_schema ||
+                throw(ArgumentError("UInt16 ADC transport requires the explicit operational raw-detector-pixels schema"))
+        else
+            throw(ArgumentError("frame_encoding must be :float32 or :uint16"))
+        end
+        ((command_schema == metre_command_schema && command_scale == 1) ||
+         (command_schema == micrometre_command_schema && Float32(command_scale) == 1f-6)) ||
+            throw(ArgumentError("command schema and scale must declare metre OPD (1) or micrometre OPD (1f-6)"))
+    end
 
     # Nanosecond quantization removes Float32 representation error without
     # assuming an integer-Hz cadence or substituting detector exposure for it.

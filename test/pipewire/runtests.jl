@@ -45,6 +45,29 @@ using Test
             command_scale=1f-6)
         @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
             command_schema="org.calculon.ao.demanded-pdm-command/1")
+        heart = REVOLTCopperSim.pipewire_configuration(system, "test";
+            frame_encoding=:uint16, frame_schema="org.heart.std-wfs.raw-pixels/1",
+            command_schema="org.heart.std-dm.actuator-command/1", command_scale=1)
+        @test heart.frame_encoding === :uint16
+        @test heart.frame_schema == "org.heart.std-wfs.raw-pixels/1"
+        @test heart.command_schema == "org.heart.std-dm.actuator-command/1"
+        @test heart.command_scale === 1f0
+        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
+            frame_encoding=:uint16, frame_schema="org.heart.std-wfs.raw-pixels/1")
+        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
+            command_schema="org.heart.std-dm.actuator-command/1")
+        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
+            frame_encoding=:float32, frame_schema="org.heart.std-wfs.raw-pixels/1",
+            command_schema="org.heart.std-dm.actuator-command/1")
+        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
+            frame_encoding=:uint16, frame_schema="org.heart.std-wfs.raw-pixels/1",
+            command_schema="org.heart.std-dm.actuator-command/1", command_scale=1f-6)
+        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
+            frame_encoding=:uint16, frame_schema="org.heart.std-wfs.raw-pixels/1",
+            command_schema="org.calculon.ao.demanded-pdm-command/1", command_scale=1f-6)
+        @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(system, "test";
+            frame_encoding=:uint16, frame_schema="org.calculon.ao.raw-detector-pixels/1",
+            command_schema="org.heart.std-dm.actuator-command/1")
         wrong_boundary = prepare_graph_hil_boundary(system.graph;
             command_input=:pdm_command, frame_output=:pupil_opd)
         @test_throws ArgumentError REVOLTCopperSim.pipewire_configuration(

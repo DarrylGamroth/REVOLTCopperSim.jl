@@ -77,6 +77,12 @@ require both `command_schema="org.calculon.ao.demanded-pdm-command/1"`
 and `command_scale=1f-6`; conversion is confined to transport. Float32 frame
 schemas and metre commands remain the default scientific contract.
 
+The existing REVOLT HEART deployment contract is selected explicitly with
+`frame_encoding=:uint16`, `frame_schema="org.heart.std-wfs.raw-pixels/1"`,
+`command_schema="org.heart.std-dm.actuator-command/1"`, and `command_scale=1`.
+The pair retains that deployment's metre-OPD command meaning and HSDM277 order;
+other HEART command meanings require a separately validated conversion.
+
 The optional configuration checks run in their own dependency environment:
 
 ```bash
