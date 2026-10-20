@@ -8,26 +8,18 @@ using AdaptiveOpticsSim.WavefrontSensors: PyramidShiftedMaskStrategy
 include("parameters.jl")
 include("geometry.jl")
 include("graphs.jl")
-include("science_diagnostics.jl")
 
 export actuator_coordinates
 export actuator_grid_indices
 export actuator_index_map
-export closed_loop_on_axis_strehl
-export closed_loop_psf
 export command_count
 export normalized_pupil_actuator_pitch
-export open_loop_on_axis_strehl
-export open_loop_psf
 export pipewire_configuration
 export prepare_calibration_system
 export prepare_hil_system
-export prepare_science_diagnostics
 export provisional_gaussian_influence_width
 export provisional_mechanical_coupling
-export science_pupil_support
 export supported_profiles
-export update_science_diagnostics!
 
 """
     pipewire_configuration(system, remote; kwargs...)

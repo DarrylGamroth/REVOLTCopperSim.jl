@@ -4,6 +4,8 @@ using AdaptiveOpticsSim.WavefrontSensors
 using REVOLTCopperSim
 using Test
 
+include("science_analysis.jl")
+
 @testset "REVOLT Copper HSDM277 command geometry" begin
     index_map = actuator_index_map()
     coordinates = actuator_coordinates(Float32)
@@ -78,17 +80,39 @@ end
     end
 end
 
-@testset "REVOLT Copper science diagnostics" begin
-    diagnostics = prepare_science_diagnostics()
-    zero_opd = zeros(Float32, 480, 480)
-    update_science_diagnostics!(diagnostics, zero_opd, zero_opd)
-    @test size(science_pupil_support(diagnostics)) == (480, 480)
-    @test size(open_loop_psf(diagnostics)) == (960, 960)
-    @test size(closed_loop_psf(diagnostics)) == (960, 960)
-    @test open_loop_on_axis_strehl(diagnostics) ≈ 1.0f0
-    @test closed_loop_on_axis_strehl(diagnostics) ≈ 1.0f0
-    @test maximum(open_loop_psf(diagnostics)) <= 1.001f0
-    @test maximum(closed_loop_psf(diagnostics)) <= 1.001f0
+@testset "REVOLT Copper native science analysis fixture" begin
+    system = prepare_hil_system()
+    fixture = prepare_science_analysis_fixture(
+        system.graph,
+        Val(:pwfs);
+        wavelength_m=550.0e-9,
+    )
+    zero_opd = zeros(Float32, (480, 480))
+    strehl = update_science_analysis!(fixture, zero_opd, zero_opd)
+    @test size(fixture.support) == (480, 480)
+    @test size(fixture.open_loop_psf) == (960, 960)
+    @test size(fixture.corrected_psf) == (960, 960)
+    @test strehl.open_loop ≈ 1.0f0
+    @test strehl.corrected ≈ 1.0f0
+    @test maximum(fixture.open_loop_psf) <= 1.001f0
+    @test maximum(fixture.corrected_psf) <= 1.001f0
+
+    graph_pupil = prepared_graph_node(system.graph, Val(:pwfs)).prepared.input
+    graph_opd = copy(graph_pupil.opd)
+    poke_opd = zeros(Float32, 480, 480)
+    poke_opd[1:240, :] .= Float32(550.0e-9) / 4
+    poked = update_science_analysis!(fixture, zero_opd, poke_opd)
+    @test poked.open_loop == on_axis_strehl(
+        fixture.open_loop_pupil, Float32(550.0e-9))
+    @test poked.corrected == on_axis_strehl(
+        fixture.corrected_pupil, Float32(550.0e-9))
+    @test fixture.open_loop_peak == diffraction_limited_peak(
+        fixture.open_loop_imaging)
+    @test fixture.corrected_peak == diffraction_limited_peak(
+        fixture.corrected_imaging)
+    @test poked.corrected < 1.0f0
+    @test maximum(fixture.corrected_psf) <= 1.001f0
+    @test graph_pupil.opd == graph_opd
 end
 
 @testset "REVOLT Copper graph profiles" begin

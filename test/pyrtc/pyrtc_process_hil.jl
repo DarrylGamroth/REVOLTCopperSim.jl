@@ -4,6 +4,8 @@ using AdaptiveOpticsSim.AlgorithmGraphs
 using LinearAlgebra
 import REVOLTCopperSim
 
+include(joinpath(@__DIR__, "..", "science_analysis.jl"))
+
 include(joinpath(@__DIR__, "pyrtc_shared_memory.jl"))
 using .PyRTCSharedMemory
 
@@ -44,8 +46,9 @@ end
     REVOLTCopperSim.prepare_calibration_system()
 @inline prepare_atmospheric_system(::PyRTCProcessDefinition) =
     REVOLTCopperSim.prepare_hil_system()
-@inline prepare_science_diagnostics() =
-    REVOLTCopperSim.prepare_science_diagnostics()
+@inline prepare_science_analysis(prepared) =
+    prepare_science_analysis_fixture(
+        prepared.graph, Val(:pwfs); wavelength_m=550.0e-9)
 
 struct ProcessStreams{W,C,S,D}
     wfs::W
@@ -471,7 +474,7 @@ function close_atmospheric_loop!(
         "$(ATMOSPHERE_VALIDATION_BURN_IN_FRAMES) frames",
     ))
     prepared = prepare_atmospheric_system(definition)
-    diagnostics = prepare_science_diagnostics()
+    science_fixture = prepare_science_analysis(prepared)
     boundary = prepared.boundary
     command = zeros(Float32, definition.command_count)
     open_loop_values = Vector{Float32}(undef, frames)
@@ -479,29 +482,29 @@ function close_atmospheric_loop!(
     uncompensated_opd_rms_values = Vector{Float64}(undef, frames)
     residual_opd_rms_values = Vector{Float64}(undef, frames)
     pdm_command_rms_values = Vector{Float64}(undef, frames)
-    support = REVOLTCopperSim.science_pupil_support(diagnostics)
+    support = science_fixture.support
     sequence = step_hil_frame!(boundary)
 
     for frame_index in 1:frames
         atmosphere_opd = graph_output(prepared.graph, Val(:atmosphere_opd))
         residual_opd = graph_output(prepared.graph, Val(:pupil_opd))
-        REVOLTCopperSim.update_science_diagnostics!(
-            diagnostics,
+        strehl = update_science_analysis!(
+            science_fixture,
             atmosphere_opd,
             residual_opd,
         )
         open_loop_values[frame_index] =
-            REVOLTCopperSim.open_loop_on_axis_strehl(diagnostics)
+            strehl.open_loop
         closed_loop_values[frame_index] =
-            REVOLTCopperSim.closed_loop_on_axis_strehl(diagnostics)
+            strehl.corrected
         uncompensated_opd_rms_values[frame_index] =
             pupil_opd_rms(atmosphere_opd, support)
         residual_opd_rms_values[frame_index] =
             pupil_opd_rms(residual_opd, support)
-        maximum(REVOLTCopperSim.open_loop_psf(diagnostics)) <= 1.001f0 || error(
+        maximum(science_fixture.open_loop_psf) <= 1.001f0 || error(
             "open-loop PSF exceeds its exact diffraction-limited peak",
         )
-        maximum(REVOLTCopperSim.closed_loop_psf(diagnostics)) <= 1.001f0 || error(
+        maximum(science_fixture.corrected_psf) <= 1.001f0 || error(
             "closed-loop PSF exceeds its exact diffraction-limited peak",
         )
 
