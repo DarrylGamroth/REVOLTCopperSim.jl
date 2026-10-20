@@ -6,8 +6,17 @@ version = "0.2.0"
 [deps]
 AdaptiveOpticsSim = "002fb5eb-ad68-44a0-adbe-b299bfc2febc"
 
+[weakdeps]
+AdaptiveOpticsSimPipeWireHIL = "355e2bce-7765-4934-ac1c-873e1c98ec3d"
+PipeWireAO = "5d815c25-fdf3-4508-8205-db8be38ea5d0"
+
+[extensions]
+REVOLTCopperSimPipeWireHILExt = ["AdaptiveOpticsSimPipeWireHIL", "PipeWireAO"]
+
 [compat]
 AdaptiveOpticsSim = "0.2"
+AdaptiveOpticsSimPipeWireHIL = "0.2"
+PipeWireAO = "0.6.18"
 julia = "1.12"
 
 [workspace]

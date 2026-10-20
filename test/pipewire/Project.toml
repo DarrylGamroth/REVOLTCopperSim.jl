@@ -1,0 +1,17 @@
+[deps]
+AdaptiveOpticsSim = "002fb5eb-ad68-44a0-adbe-b299bfc2febc"
+AdaptiveOpticsSimPipeWireHIL = "355e2bce-7765-4934-ac1c-873e1c98ec3d"
+REVOLTCopperSim = "1e096dfd-8d59-466f-967d-e58cf577fca9"
+PipeWireAO = "5d815c25-fdf3-4508-8205-db8be38ea5d0"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[sources]
+REVOLTCopperSim = {path = "../.."}
+
+[compat]
+AdaptiveOpticsSim = "0.2"
+AdaptiveOpticsSimPipeWireHIL = "0.2"
+REVOLTCopperSim = "0.2"
+PipeWireAO = "0.6.18"
+Test = "1"
+julia = "1.12"
