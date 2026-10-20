@@ -5,7 +5,8 @@ using AdaptiveOpticsSim.AlgorithmGraphs
 using AdaptiveOpticsSim.Backends: HostComputeDevice, allocate_device_array
 using AdaptiveOpticsSim.WavefrontSensors: PyramidShiftedMaskStrategy
 
-include("hsdm277.jl")
+include("parameters.jl")
+include("geometry.jl")
 include("graphs.jl")
 include("science_diagnostics.jl")
 
