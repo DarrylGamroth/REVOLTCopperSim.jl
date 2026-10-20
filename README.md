@@ -25,8 +25,9 @@ builders.
 
 ## Local use
 
-The simulation uses registered AdaptiveOpticsSim 0.2. Add General and the
-package registry, then instantiate this checkout with Julia 1.12:
+The simulation uses registered AdaptiveOpticsSim 0.2.1 and test-only
+AdaptiveOpticsCalibration 0.17. Add General and the package registry, then
+instantiate this checkout with Julia 1.12:
 
 ```bash
 git clone https://github.com/DarrylGamroth/REVOLTCopperSim.jl.git
@@ -49,9 +50,9 @@ frame = hil_frame_buffer(system.boundary)
 
 ## Shared PipeWire HIL transport
 
-The optional transport uses `AdaptiveOpticsSimPipeWireHIL` and `PipeWireAO`.
-Install those packages in the application environment, then attach the shared
-adapter to the prepared plant:
+The optional transport uses released `AdaptiveOpticsSimPipeWireHIL` 0.2.1
+and `PipeWireAO`. Install those packages in the application environment, then
+attach the shared adapter to the prepared plant:
 
 ```julia
 using REVOLTCopperSim
@@ -103,17 +104,25 @@ JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 julia --startup-file=no --project=. \
   -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
 ```
 
-The default suite checks the physical instrument graphs without launching
-Python or requiring a pyRTC installation. The plant-only HIL graphs connect to
-an external RTC through AdaptiveOpticsSimPipeWireHIL; REVOLTRTC supplies the
-shared Classic/Copper PipeWireAO deployment and the FGA/JFG controller graph.
+The default suite includes physical graph checks and pure Julia AOC calibration
+contract tests. It does not launch Python or require a pyRTC installation.
+The plant-only HIL graphs connect to an external RTC through
+AdaptiveOpticsSimPipeWireHIL; REVOLTRTC supplies the shared Classic/Copper
+PipeWireAO deployment and the FGA/JFG controller graph.
 
 The opt-in process test calibrates this package's complete 277-command model
-through its 64×64 Pyramid frames, installs the resulting 1,296×277
-interaction matrix in an independent pyRTC process, and closes a 300-frame
-evolving-atmosphere loop. It verifies retained interaction rank, reconstructor
-conditioning, on-axis Strehl improvement, and pupil-OPD reduction. Install the
-pinned official pyRTC revision into an isolated Python environment, then run:
+through its 64×64 Pyramid frames. It retains the complete interleaved
+positive-poke/negative-poke response cycle, forms the 1,296×277 interaction
+matrix with the test-only `AdaptiveOpticsCalibration.jl` dependency, and prepares an
+identity-weighted, zero-Tikhonov `StrokeWeightedTikhonov` reconstructor. The
+existing 5% singular-value cutoff selects its retained rank (221 for the
+maintained fixture). The test compares both AOC products with the direct
+central-difference matrix and pyRTC's existing cutoff pseudoinverse, then installs the
+AOC corrector-by-measurement control matrix directly in an independent pyRTC
+process before closing the unchanged 300-frame evolving-atmosphere loop. It
+verifies retained interaction rank, reconstructor conditioning, on-axis Strehl
+improvement, and pupil-OPD reduction. Install the pinned official pyRTC
+revision into an isolated Python environment, then run:
 
 ```bash
 python3 -m venv .venv-pyrtc
@@ -123,6 +132,15 @@ python3 -m venv .venv-pyrtc
 export PYRTC_PYTHON="$PWD/.venv-pyrtc/bin/python"
 REVOLT_COPPER_PYRTC_TESTS=1 julia --startup-file=no --project=. \
   -e 'using Pkg; Pkg.test()'
+```
+
+For the standalone metrics runner, use the committed test environment because
+the AOC integration is deliberately test-only:
+
+```bash
+PYRTC_PYTHON="$PWD/.venv-pyrtc/bin/python" \
+  julia --startup-file=no --project=test -e \
+  'using Pkg; Pkg.instantiate(); include("test/pyrtc/run_revolt_copper_hil.jl")'
 ```
 
 The Python environment is not part of the package runtime. The pyRTC test is
@@ -147,13 +165,18 @@ followed by immediate adoption of a zero RTC command. RTC computation and
 fixed-arrival queueing are intentionally excluded. Run it with one Julia
 thread; select `cpu`, `amdgpu`, or `cuda`. Accelerator runs default to one
 captured device graph for the complete frame, while CPU runs use direct stream
-execution. Set `REVOLT_BENCH_EXECUTION=stream` to make an explicit accelerator
-diagnostic comparison. The harness defaults to 10 CPU warmup cycles and 200
-accelerator warmup cycles so accelerator measurements exclude clock ramp-up
-and first-replay effects:
+execution. The default benchmark environment supports CPU and CUDA 6.4.2; use
+`benchmark/amdgpu` for AMDGPU so the accelerator stacks resolve independently.
+Set `REVOLT_BENCH_EXECUTION=stream` to make an explicit accelerator diagnostic
+comparison. The harness defaults to 10 CPU warmup cycles and 200 accelerator
+warmup cycles so accelerator measurements exclude clock ramp-up and
+first-replay effects:
 
 ```bash
 julia --startup-file=no --project=benchmark \
+  -e 'using Pkg; Pkg.instantiate()'
+
+julia --startup-file=no --project=benchmark/amdgpu \
   -e 'using Pkg; Pkg.instantiate()'
 
 REVOLT_BENCH_BACKEND=cpu \
@@ -162,6 +185,13 @@ REVOLT_BENCH_RUNS=3 \
 REVOLT_BENCH_OUTPUT=/tmp/revolt-copper-cpu.toml \
 JULIA_NUM_THREADS=1 \
   julia --startup-file=no --project=benchmark benchmark/frame_service.jl
+
+REVOLT_BENCH_BACKEND=amdgpu \
+REVOLT_BENCH_SAMPLES=20 \
+REVOLT_BENCH_RUNS=3 \
+REVOLT_BENCH_OUTPUT=/tmp/revolt-copper-amdgpu.toml \
+JULIA_NUM_THREADS=1 \
+  julia --startup-file=no --project=benchmark/amdgpu benchmark/frame_service.jl
 ```
 
 The TOML artifact records raw samples, preparation, warmed Julia allocation,

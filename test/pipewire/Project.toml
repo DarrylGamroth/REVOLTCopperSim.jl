@@ -6,11 +6,10 @@ PipeWireAO = "5d815c25-fdf3-4508-8205-db8be38ea5d0"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [sources]
-AdaptiveOpticsSimPipeWireHIL = {path = "../../../AdaptiveOpticsSimPipeWireHIL.jl"}
 REVOLTCopperSim = {path = "../.."}
 
 [compat]
-AdaptiveOpticsSim = "0.2"
+AdaptiveOpticsSim = "0.2.1"
 AdaptiveOpticsSimPipeWireHIL = "0.2.1"
 REVOLTCopperSim = "0.2"
 PipeWireAO = "0.6.18"

@@ -1,5 +1,4 @@
 [deps]
-AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
 AdaptiveOpticsSim = "002fb5eb-ad68-44a0-adbe-b299bfc2febc"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -12,8 +11,7 @@ TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 REVOLTCopperSim = {path = ".."}
 
 [compat]
-AMDGPU = "2.7"
-AdaptiveOpticsSim = "0.2"
-CUDA = "6"
+AdaptiveOpticsSim = "0.2.1"
+CUDA = "6.4.2"
 REVOLTCopperSim = "0.2"
 julia = "1.12"

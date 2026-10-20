@@ -1,6 +1,8 @@
 using Test
 
-include(joinpath(@__DIR__, "pyrtc_process_hil.jl"))
+if !isdefined(@__MODULE__, :PyRTCProcessHIL)
+    include(joinpath(@__DIR__, "pyrtc_process_hil.jl"))
+end
 using .PyRTCProcessHIL
 
 @testset "REVOLT Copper closes through a pyRTC process" begin
@@ -12,6 +14,10 @@ using .PyRTCProcessHIL
     @test result.retained_interaction_rank >= 221
     @test isfinite(result.retained_interaction_condition)
     @test isfinite(result.numerical_interaction_condition)
+    @test result.interaction_matrix_relative_error <=
+        PyRTCProcessHIL.AOC_INTERACTION_MATRIX_RELATIVE_TOLERANCE
+    @test result.reconstructor_relative_error <=
+        PyRTCProcessHIL.AOC_RECONSTRUCTOR_RELATIVE_TOLERANCE
     @test 0 < result.mean_open_loop_on_axis_strehl < 1
     @test 0.35 < result.mean_closed_loop_on_axis_strehl <= 1
     @test result.improvement >

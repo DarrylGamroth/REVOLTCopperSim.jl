@@ -131,6 +131,34 @@ def configure_loop(
     loop.setGain(gain)
 
 
+def configure_control_matrix(
+    loop,
+    matrix_path: str,
+    gain: float,
+) -> None:
+    control_matrix = np.fromfile(matrix_path, dtype=np.float32)
+    expected = loop.numModes * loop.signalSize
+    if control_matrix.size != expected:
+        raise ValueError(
+            f"control matrix contains {control_matrix.size} values; expected {expected}"
+        )
+    if not np.all(np.isfinite(control_matrix)):
+        raise ValueError("control matrix must contain only finite values")
+    if not np.isfinite(gain):
+        raise ValueError("loop gain must be finite")
+    loop.CM[:] = control_matrix.reshape(
+        (loop.numModes, loop.signalSize), order="F"
+    )
+    loop.numActiveModes = loop.numModes
+    loop.setGain(gain)
+
+
+def write_control_matrix(loop, matrix_path: str) -> None:
+    # Julia reads matrices in column-major order.  C-order bytes of this
+    # transpose retain pyRTC's corrector-by-measurement layout.
+    np.asarray(loop.CM, dtype=np.float32).T.tofile(matrix_path)
+
+
 def serve(
     system: str,
     temporary_directory: Path,
@@ -169,6 +197,16 @@ def serve(
                     float(command[3]),
                 )
                 control("CONFIGURED")
+            elif command[0] == "CONFIGURE_CONTROL_MATRIX" and len(command) == 3:
+                configure_control_matrix(
+                    loop,
+                    command[1],
+                    float(command[2]),
+                )
+                control("CONTROL_MATRIX_CONFIGURED")
+            elif command[0] == "WRITE_CONTROL_MATRIX" and len(command) == 2:
+                write_control_matrix(loop, command[1])
+                control("CONTROL_MATRIX_WRITTEN")
             elif command[0] == "FLATTEN" and len(command) == 1:
                 loop.flatten()
                 control("FLATTENED")

@@ -1,6 +1,7 @@
 module PyRTCProcessHIL
 
 using AdaptiveOpticsSim.AlgorithmGraphs
+import AdaptiveOpticsCalibration
 using LinearAlgebra
 import REVOLTCopperSim
 
@@ -15,6 +16,11 @@ const ATMOSPHERE_VALIDATION_BURN_IN_FRAMES = 10
 # SplitMix64 seed 1 produces approximately 21× mean Strehl improvement for
 # this deterministic fixture. Fifteen leaves a material regression margin.
 const REVOLT_COPPER_MINIMUM_STREHL_IMPROVEMENT = 15.0
+const AOC = AdaptiveOpticsCalibration
+const InteractionMatrices = AOC.InteractionMatrices
+const Reconstructors = AOC.Reconstructors
+const AOC_INTERACTION_MATRIX_RELATIVE_TOLERANCE = 5.0f-6
+const AOC_RECONSTRUCTOR_RELATIVE_TOLERANCE = 2.0f-4
 
 struct PyRTCProcessDefinition
     name::Symbol
@@ -345,56 +351,125 @@ function calibrate_interaction_matrix!(
         prepared,
         signal,
     )
-    interaction_matrix = Matrix{Float32}(
+    responses = Matrix{Float32}(
         undef,
+        2 * length(hil_command_buffer(boundary)),
         length(signal),
-        length(hil_command_buffer(boundary)),
     )
-    positive_signal = similar(signal)
 
-    for command_index in axes(interaction_matrix, 2)
+    for command_index in eachindex(hil_command_buffer(boundary))
         if report_progress && (command_index == 1 ||
                 command_index % 25 == 0 ||
-                command_index == last(axes(interaction_matrix, 2)))
+                command_index == lastindex(hil_command_buffer(boundary)))
             println(
                 "  calibrated command ",
                 command_index,
                 " / ",
-                size(interaction_matrix, 2),
+                length(hil_command_buffer(boundary)),
             )
         end
         fill!(hil_command_buffer(boundary), 0.0f0)
         hil_command_buffer(boundary)[command_index] = poke
         adopt_hil_command!(boundary, sequence)
         sequence = step_hil_frame!(boundary)
-        copyto!(
-            positive_signal,
-            process_frame!(
-                worker,
-                streams,
-                hil_frame_buffer(boundary),
-                signal,
-            ),
-        )
-
-        fill!(hil_command_buffer(boundary), 0.0f0)
-        hil_command_buffer(boundary)[command_index] = -poke
-        adopt_hil_command!(boundary, sequence)
-        sequence = step_hil_frame!(boundary)
-        negative_signal = process_frame!(
+        process_frame!(
             worker,
             streams,
             hil_frame_buffer(boundary),
             signal,
         )
-        @views @. interaction_matrix[:, command_index] =
-            (positive_signal - negative_signal) / (2 * poke)
+        copyto!(@view(responses[2 * command_index - 1, :]), signal)
+
+        fill!(hil_command_buffer(boundary), 0.0f0)
+        hil_command_buffer(boundary)[command_index] = -poke
+        adopt_hil_command!(boundary, sequence)
+        sequence = step_hil_frame!(boundary)
+        process_frame!(
+            worker,
+            streams,
+            hil_frame_buffer(boundary),
+            signal,
+        )
+        copyto!(@view(responses[2 * command_index, :]), signal)
     end
 
     fill!(hil_command_buffer(boundary), 0.0f0)
     adopt_hil_command!(boundary, sequence)
     reset_hil_boundary!(boundary)
-    return flat_signal, interaction_matrix
+    return flat_signal, responses
+end
+
+"""Return the direct central-difference matrix used by the pre-AOC Copper gate."""
+function central_difference_interaction_matrix(
+    responses::Matrix{Float32},
+    poke::Float32,
+)
+    iseven(size(responses, 1)) || throw(DimensionMismatch(
+        "push-pull responses must have an even row count",
+    ))
+    interaction_matrix = Matrix{Float32}(
+        undef,
+        size(responses, 2),
+        div(size(responses, 1), 2),
+    )
+    scale = 2.0f0 * poke
+    for command_index in axes(interaction_matrix, 2)
+        @views @. interaction_matrix[:, command_index] =
+            (responses[2 * command_index - 1, :] -
+             responses[2 * command_index, :]) / scale
+    end
+    return interaction_matrix
+end
+
+"""Form Copper's interaction matrix from an interleaved +poke/-poke response cycle."""
+function interaction_matrix_from_responses(
+    responses::Matrix{Float32},
+    poke::Float32,
+)
+    iseven(size(responses, 1)) || throw(DimensionMismatch(
+        "push-pull responses must have an even row count",
+    ))
+    method = InteractionMatrices.ZonalPushPull(
+        fill(poke, div(size(responses, 1), 2)),
+    )
+    plan = AOC.prepare(
+        method,
+        InteractionMatrices.ResponseSpecification(size(responses, 2)),
+    )
+    product = AOC.process(plan, responses)
+    return InteractionMatrices.interaction_matrix(product)
+end
+
+@inline relative_error(reference, approximation) = iszero(norm(reference)) ?
+    norm(approximation) : norm(reference - approximation) / norm(reference)
+
+"""Prepare Copper's 5%-cutoff, identity-weighted, zero-Tikhonov AOC reconstructor."""
+function prepare_aoc_reconstructor(
+    interaction_matrix::Matrix{Float32},
+    retained_rank::Int,
+    control_rcond::Float32,
+)
+    measurement_count, command_count = size(interaction_matrix)
+    plan = AOC.prepare(
+        Reconstructors.StrokeWeightedTikhonov(
+            retained_rank;
+            tikhonov_scale=0.0f0,
+            rtol=control_rcond,
+        ),
+        Reconstructors.ReconstructorSpecification(
+            measurement_count,
+            command_count,
+            Float32,
+        ),
+    )
+    return AOC.process(
+        plan,
+        Reconstructors.StrokeWeightedReconstructorInputs(
+            interaction_matrix,
+            Matrix{Float32}(I, measurement_count, measurement_count),
+            Matrix{Float32}(I, command_count, command_count),
+        ),
+    )
 end
 
 function configure_worker_loop!(
@@ -423,6 +498,81 @@ function configure_worker_loop!(
         "pyRTC worker flatten command is nonzero",
     )
     return nothing
+end
+
+function validate_control_matrix(
+    control_matrix::AbstractMatrix{Float32},
+    expected_shape::Tuple{Int,Int},
+    gain::Float32,
+)
+    size(control_matrix) == expected_shape || throw(DimensionMismatch(
+        "control matrix has size $(size(control_matrix)); expected $expected_shape " *
+        "(corrector by measurement)",
+    ))
+    all(isfinite, control_matrix) || throw(ArgumentError(
+        "control matrix contains a non-finite value",
+    ))
+    isfinite(gain) || throw(ArgumentError("pyRTC loop gain must be finite"))
+    return nothing
+end
+
+function configure_worker_control_matrix!(
+    worker::PyRTCWorker,
+    streams::ProcessStreams,
+    control_matrix::Matrix{Float32},
+    gain::Float32,
+    temporary_directory::AbstractString,
+)
+    expected_shape = (
+        only(stream_shape(streams.wfc)),
+        only(stream_shape(streams.signal)),
+    )
+    validate_control_matrix(control_matrix, expected_shape, gain)
+    matrix_path = joinpath(temporary_directory, "control_matrix.f32")
+    open(matrix_path, "w") do io
+        write(io, control_matrix)
+    end
+    send_worker_command!(
+        worker,
+        "CONFIGURE_CONTROL_MATRIX $matrix_path $(Float64(gain))",
+        "CONTROL_MATRIX_CONFIGURED";
+        timeout=30.0,
+    )
+    send_worker_command!(worker, "FLATTEN", "FLATTENED")
+    flat_command = zeros(Float32, size(control_matrix, 1))
+    read_next!(flat_command, streams.wfc; timeout=5.0)
+    all(iszero, flat_command) || error(
+        "pyRTC worker flatten command is nonzero",
+    )
+    return nothing
+end
+
+"""Read pyRTC's current corrector-by-measurement control matrix in Julia layout."""
+function read_worker_control_matrix(
+    worker::PyRTCWorker,
+    expected_shape::Tuple{Int,Int},
+    temporary_directory::AbstractString,
+)
+    matrix_path = joinpath(temporary_directory, "worker_control_matrix.f32")
+    send_worker_command!(
+        worker,
+        "WRITE_CONTROL_MATRIX $matrix_path",
+        "CONTROL_MATRIX_WRITTEN";
+        timeout=30.0,
+    )
+    expected_bytes = sizeof(Float32) * prod(expected_shape)
+    filesize(matrix_path) == expected_bytes || error(
+        "pyRTC worker control matrix has $(filesize(matrix_path)) bytes; " *
+        "expected $expected_bytes",
+    )
+    control_matrix = Matrix{Float32}(undef, expected_shape)
+    open(matrix_path, "r") do io
+        read!(io, control_matrix)
+    end
+    all(isfinite, control_matrix) || error(
+        "pyRTC worker control matrix contains a non-finite value",
+    )
+    return control_matrix
 end
 
 @inline function root_mean_square(values::AbstractArray)
@@ -554,7 +704,7 @@ function run_revolt_copper_validation()
         try
             worker = start_worker(definition, temporary_directory)
             signal = zeros(Float32, definition.signal_shape)
-            flat_signal, interaction_matrix = calibrate_interaction_matrix!(
+            flat_signal, responses = calibrate_interaction_matrix!(
                 worker,
                 streams,
                 calibration,
@@ -566,11 +716,28 @@ function run_revolt_copper_validation()
                 "REVOLT Copper flat reference left a nonzero residual: " *
                 "$(norm(flat_signal))",
             )
+            interaction_matrix = interaction_matrix_from_responses(
+                responses,
+                definition.poke,
+            )
+            direct_interaction_matrix = central_difference_interaction_matrix(
+                responses,
+                definition.poke,
+            )
+            interaction_matrix_relative_error = relative_error(
+                direct_interaction_matrix,
+                interaction_matrix,
+            )
+            interaction_matrix_relative_error <=
+                AOC_INTERACTION_MATRIX_RELATIVE_TOLERANCE || error(
+                "AOC interaction matrix differs from Copper central difference: " *
+                "$interaction_matrix_relative_error",
+            )
             all(isfinite, interaction_matrix) || error(
-                "REVOLT Copper interaction matrix contains a non-finite value",
+                "REVOLT Copper AOC interaction matrix contains a non-finite value",
             )
 
-            singular_values = svdvals(interaction_matrix)
+            singular_values = svdvals(direct_interaction_matrix)
             maximum_singular_value = maximum(singular_values)
             retained_tolerance =
                 maximum_singular_value * definition.control_rcond
@@ -587,12 +754,48 @@ function run_revolt_copper_validation()
                 maximum_singular_value /
                 singular_values[retained_interaction_rank]
 
+            aoc_product = prepare_aoc_reconstructor(
+                interaction_matrix,
+                retained_interaction_rank,
+                definition.control_rcond,
+            )
+            aoc_product.diagnostics.retained_rank == retained_interaction_rank || error(
+                "AOC retained rank does not match Copper's 5% cutoff",
+            )
+            aoc_product.diagnostics.numerical_rank == retained_interaction_rank || error(
+                "AOC numerical rank $(aoc_product.diagnostics.numerical_rank) " *
+                "does not match Copper's 5% cutoff rank " *
+                "$retained_interaction_rank",
+            )
+            control_matrix = Reconstructors.reconstructor(aoc_product)
             configure_worker_loop!(
                 worker,
                 streams,
-                interaction_matrix,
+                direct_interaction_matrix,
                 definition.gain,
                 definition.control_rcond,
+                temporary_directory,
+            )
+            baseline_control_matrix = read_worker_control_matrix(
+                worker,
+                size(control_matrix),
+                temporary_directory,
+            )
+            reconstructor_relative_error = relative_error(
+                baseline_control_matrix,
+                control_matrix,
+            )
+            reconstructor_relative_error <= AOC_RECONSTRUCTOR_RELATIVE_TOLERANCE ||
+                error(
+                    "AOC reconstructor differs from Copper's current " *
+                    "5%-cutoff pseudoinverse: $reconstructor_relative_error",
+                )
+
+            configure_worker_control_matrix!(
+                worker,
+                streams,
+                control_matrix,
+                definition.gain,
                 temporary_directory,
             )
             atmosphere = close_atmospheric_loop!(
@@ -627,6 +830,8 @@ function run_revolt_copper_validation()
                 retained_interaction_condition,
                 numerical_interaction_condition=
                     maximum_singular_value / minimum(singular_values),
+                interaction_matrix_relative_error,
+                reconstructor_relative_error,
                 atmosphere...,
             )
         finally
@@ -653,6 +858,14 @@ function revolt_copper_main()
     println(
         "  numerical interaction condition: ",
         result.numerical_interaction_condition,
+    )
+    println(
+        "  AOC/direct interaction-matrix relative error: ",
+        result.interaction_matrix_relative_error,
+    )
+    println(
+        "  AOC/current-pseudoinverse relative error: ",
+        result.reconstructor_relative_error,
     )
     println(
         "  atmospheric mean open-loop on-axis Strehl: ",

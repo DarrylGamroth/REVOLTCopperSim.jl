@@ -115,6 +115,8 @@ end
     @test graph_pupil.opd == graph_opd
 end
 
+include(joinpath(@__DIR__, "pyrtc", "test_aoc_calibration.jl"))
+
 @testset "REVOLT Copper graph profiles" begin
     @test supported_profiles() == (:coordinate_gaussian, :grid_gaussian)
     @test_throws ArgumentError prepare_hil_system(; profile=:unknown)
