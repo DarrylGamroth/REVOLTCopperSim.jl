@@ -160,3 +160,5 @@ end
 if get(ENV, "REVOLT_COPPER_PYRTC_TESTS", "0") == "1"
     include(joinpath(@__DIR__, "pyrtc", "test_revolt_copper_hil.jl"))
 end
+
+include("convergence_preparation.jl")

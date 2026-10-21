@@ -86,10 +86,12 @@ function _graph_definition(
     calibration::Bool=false,
     atmosphere_step::Real=_ATMOSPHERE_STEP,
     exposure_duration_s::Real=_EXPOSURE_DURATION_S,
+    pupil_resolution::Int=_PUPIL_RESOLUTION,
+    modulation_points::Int=32,
 )
     _require_profile(profile)
     telescope = (;
-        resolution=_PUPIL_RESOLUTION,
+        resolution=pupil_resolution,
         telescope_diameter_m=_TELESCOPE_DIAMETER_M,
         central_obstruction_ratio=_CENTRAL_OBSTRUCTION_RATIO,
         pupil_reflectivity=1.0, aperture_revision=1, T=Float32,
@@ -97,7 +99,7 @@ function _graph_definition(
     pdm = _pdm_node(Val(profile), telescope)
     pupil_opd_composition = pupil_opd_composition_node(
         :pupil_opd_composition;
-        resolution=_PUPIL_RESOLUTION,
+        resolution=pupil_resolution,
         uncompensated_opd_schema=_ATMOSPHERE_OPD_SCHEMA,
         surface_opd_schema=_PDM_SURFACE_OPD_SCHEMA,
         pupil_opd_schema=_PUPIL_OPD_SCHEMA,
@@ -107,7 +109,7 @@ function _graph_definition(
         :pwfs; telescope...,
         pupil_samples=30,
         modulation=5.0,
-        modulation_points=32,
+        modulation_points,
         modulation_propagation_strategy=PyramidShiftedMaskStrategy(),
         diffraction_padding=2,
         psf_centering=true,
@@ -162,7 +164,7 @@ function _graph_definition(
     sensor_nodes = (pdm, pupil_opd_composition, pwfs, detector)
     if calibration
         uncompensated_opd = _copy_to_target(target,
-            zeros(Float32, _PUPIL_RESOLUTION, _PUPIL_RESOLUTION))
+            zeros(Float32, pupil_resolution, pupil_resolution))
         nodes = sensor_nodes
         inputs = (command, graph_input(:uncompensated_opd,
             :pupil_opd_composition => :uncompensated_opd, uncompensated_opd))
