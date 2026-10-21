@@ -1,0 +1,452 @@
+{
+  "n120-m96": [
+    {
+      "probe": "flat",
+      "rate_relative_l2": 0.0133345871116225,
+      "slope_error_rms": 0.0010182276402166777,
+      "reference_slope_response_rms": 0.0,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": null
+    },
+    {
+      "probe": "fourier32_20nm",
+      "rate_relative_l2": 0.01360360754006743,
+      "slope_error_rms": 0.0021022515301229337,
+      "reference_slope_response_rms": 0.0025001833141183438,
+      "slope_response_error_rms": 0.0018461980883438562,
+      "slope_response_relative_l2": 0.7384250898398199
+    },
+    {
+      "probe": "fourier64_20nm",
+      "rate_relative_l2": 0.015645910396134204,
+      "slope_error_rms": 0.003589290668112473,
+      "reference_slope_response_rms": 0.0012981807829975354,
+      "slope_response_error_rms": 0.003446388327729122,
+      "slope_response_relative_l2": 2.6547830416741474
+    },
+    {
+      "probe": "fourier96_20nm",
+      "rate_relative_l2": 0.01691542855045282,
+      "slope_error_rms": 0.007073775563481557,
+      "reference_slope_response_rms": 0.00085143488896956,
+      "slope_response_error_rms": 0.007001288863779526,
+      "slope_response_relative_l2": 8.222929262685915
+    },
+    {
+      "probe": "fourier192_20nm",
+      "rate_relative_l2": 0.014976221483094366,
+      "slope_error_rms": 0.004450217239270195,
+      "reference_slope_response_rms": 0.0005027992267717784,
+      "slope_response_error_rms": 0.0043364052935527175,
+      "slope_response_relative_l2": 8.624526575736002
+    },
+    {
+      "probe": "multiscale100nm",
+      "rate_relative_l2": 0.015024868593347547,
+      "slope_error_rms": 0.0053439998657046255,
+      "reference_slope_response_rms": 0.18614942825376737,
+      "slope_response_error_rms": 0.0053549803786194835,
+      "slope_response_relative_l2": 0.02876710623746493
+    }
+  ],
+  "n1440-m256": [
+    {
+      "probe": "flat",
+      "rate_relative_l2": 0.0,
+      "slope_error_rms": 0.0,
+      "reference_slope_response_rms": 0.0,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": null
+    },
+    {
+      "probe": "fourier32_20nm",
+      "rate_relative_l2": 0.0,
+      "slope_error_rms": 0.0,
+      "reference_slope_response_rms": 0.0025001833141183438,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": 0.0
+    },
+    {
+      "probe": "fourier64_20nm",
+      "rate_relative_l2": 0.0,
+      "slope_error_rms": 0.0,
+      "reference_slope_response_rms": 0.0012981807829975354,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": 0.0
+    },
+    {
+      "probe": "fourier96_20nm",
+      "rate_relative_l2": 0.0,
+      "slope_error_rms": 0.0,
+      "reference_slope_response_rms": 0.00085143488896956,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": 0.0
+    },
+    {
+      "probe": "fourier192_20nm",
+      "rate_relative_l2": 0.0,
+      "slope_error_rms": 0.0,
+      "reference_slope_response_rms": 0.0005027992267717784,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": 0.0
+    },
+    {
+      "probe": "multiscale100nm",
+      "rate_relative_l2": 0.0,
+      "slope_error_rms": 0.0,
+      "reference_slope_response_rms": 0.18614942825376737,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": 0.0
+    }
+  ],
+  "n1440-m512": [
+    {
+      "probe": "flat",
+      "rate_relative_l2": 0.0005256730510445036,
+      "slope_error_rms": 0.00031067720021360083,
+      "reference_slope_response_rms": 0.0,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": null
+    },
+    {
+      "probe": "fourier32_20nm",
+      "rate_relative_l2": 0.0005186941779221011,
+      "slope_error_rms": 0.00030666348086969594,
+      "reference_slope_response_rms": 0.0025001833141183438,
+      "slope_response_error_rms": 4.080605027919327e-06,
+      "slope_response_relative_l2": 0.0016321223347410022
+    },
+    {
+      "probe": "fourier64_20nm",
+      "rate_relative_l2": 0.0005187120862577269,
+      "slope_error_rms": 0.00030667273611716437,
+      "reference_slope_response_rms": 0.0012981807829975354,
+      "slope_response_error_rms": 4.07157919546086e-06,
+      "slope_response_relative_l2": 0.0031363730296942705
+    },
+    {
+      "probe": "fourier96_20nm",
+      "rate_relative_l2": 0.0005186973224596284,
+      "slope_error_rms": 0.00030666042745882647,
+      "reference_slope_response_rms": 0.00085143488896956,
+      "slope_response_error_rms": 4.079424636764992e-06,
+      "slope_response_relative_l2": 0.0047912349959044675
+    },
+    {
+      "probe": "fourier192_20nm",
+      "rate_relative_l2": 0.0005186963427413102,
+      "slope_error_rms": 0.0003066639446841479,
+      "reference_slope_response_rms": 0.0005027992267717784,
+      "slope_response_error_rms": 4.076073408480379e-06,
+      "slope_response_relative_l2": 0.0081067614893738
+    },
+    {
+      "probe": "multiscale100nm",
+      "rate_relative_l2": 0.0005040924530856011,
+      "slope_error_rms": 0.0002063276698732019,
+      "reference_slope_response_rms": 0.18614942825376737,
+      "slope_response_error_rms": 0.00019908811350970155,
+      "slope_response_relative_l2": 0.0010695069835954336
+    }
+  ],
+  "n180-m64": [
+    {
+      "probe": "flat",
+      "rate_relative_l2": 0.0196874211555245,
+      "slope_error_rms": 0.010274047656419562,
+      "reference_slope_response_rms": 0.0,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": null
+    },
+    {
+      "probe": "fourier32_20nm",
+      "rate_relative_l2": 0.019533796590163223,
+      "slope_error_rms": 0.01020404347234868,
+      "reference_slope_response_rms": 0.0025001833141183438,
+      "slope_response_error_rms": 0.0011395649668489293,
+      "slope_response_relative_l2": 0.4557925654546585
+    },
+    {
+      "probe": "fourier64_20nm",
+      "rate_relative_l2": 0.019620497465247026,
+      "slope_error_rms": 0.010257480976718695,
+      "reference_slope_response_rms": 0.0012981807829975354,
+      "slope_response_error_rms": 0.0015459874245432148,
+      "slope_response_relative_l2": 1.1908876211936263
+    },
+    {
+      "probe": "fourier96_20nm",
+      "rate_relative_l2": 0.020720674115810543,
+      "slope_error_rms": 0.010503530563043121,
+      "reference_slope_response_rms": 0.00085143488896956,
+      "slope_response_error_rms": 0.0027250754461737746,
+      "slope_response_relative_l2": 3.200568218988259
+    },
+    {
+      "probe": "fourier192_20nm",
+      "rate_relative_l2": 0.05596401778307517,
+      "slope_error_rms": 0.038896771066795635,
+      "reference_slope_response_rms": 0.0005027992267717784,
+      "slope_response_error_rms": 0.03755275246945855,
+      "slope_response_relative_l2": 74.6873711611808
+    },
+    {
+      "probe": "multiscale100nm",
+      "rate_relative_l2": 0.018723069499758827,
+      "slope_error_rms": 0.009734835607959957,
+      "reference_slope_response_rms": 0.18614942825376737,
+      "slope_response_error_rms": 0.003651032022522203,
+      "slope_response_relative_l2": 0.019613447415723177
+    }
+  ],
+  "n1920-m256": [
+    {
+      "probe": "flat",
+      "rate_relative_l2": 0.00041837590044060057,
+      "slope_error_rms": 1.444713413313842e-05,
+      "reference_slope_response_rms": 0.0,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": null
+    },
+    {
+      "probe": "fourier32_20nm",
+      "rate_relative_l2": 0.00042265151155289717,
+      "slope_error_rms": 5.13709261613516e-05,
+      "reference_slope_response_rms": 0.0025001833141183438,
+      "slope_response_error_rms": 5.072419978049297e-05,
+      "slope_response_relative_l2": 0.02028819226736592
+    },
+    {
+      "probe": "fourier64_20nm",
+      "rate_relative_l2": 0.0004231302026531159,
+      "slope_error_rms": 5.3129425678464244e-05,
+      "reference_slope_response_rms": 0.0012981807829975354,
+      "slope_response_error_rms": 5.0451708700153055e-05,
+      "slope_response_relative_l2": 0.03886339203362616
+    },
+    {
+      "probe": "fourier96_20nm",
+      "rate_relative_l2": 0.0004400237677956574,
+      "slope_error_rms": 9.500282231718654e-05,
+      "reference_slope_response_rms": 0.00085143488896956,
+      "slope_response_error_rms": 9.344343633731209e-05,
+      "slope_response_relative_l2": 0.10974818808564554
+    },
+    {
+      "probe": "fourier192_20nm",
+      "rate_relative_l2": 0.00042916224440286873,
+      "slope_error_rms": 7.194333703443917e-05,
+      "reference_slope_response_rms": 0.0005027992267717784,
+      "slope_response_error_rms": 7.07412854829509e-05,
+      "slope_response_relative_l2": 0.14069489712055686
+    },
+    {
+      "probe": "multiscale100nm",
+      "rate_relative_l2": 0.0004194507782123728,
+      "slope_error_rms": 7.20448417085817e-05,
+      "reference_slope_response_rms": 0.18614942825376737,
+      "slope_response_error_rms": 7.11860710253277e-05,
+      "slope_response_relative_l2": 0.0003824135894109947
+    }
+  ],
+  "n240-m128": [
+    {
+      "probe": "flat",
+      "rate_relative_l2": 0.006683288460733911,
+      "slope_error_rms": 0.0020373085179284972,
+      "reference_slope_response_rms": 0.0,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": null
+    },
+    {
+      "probe": "fourier32_20nm",
+      "rate_relative_l2": 0.0067253037802998536,
+      "slope_error_rms": 0.002152308006388637,
+      "reference_slope_response_rms": 0.0025001833141183438,
+      "slope_response_error_rms": 0.000767982517190844,
+      "slope_response_relative_l2": 0.30717048340179937
+    },
+    {
+      "probe": "fourier64_20nm",
+      "rate_relative_l2": 0.006763692390138534,
+      "slope_error_rms": 0.002084846190209321,
+      "reference_slope_response_rms": 0.0012981807829975354,
+      "slope_response_error_rms": 0.0005501284565177847,
+      "slope_response_relative_l2": 0.42376875680405873
+    },
+    {
+      "probe": "fourier96_20nm",
+      "rate_relative_l2": 0.006947657488957754,
+      "slope_error_rms": 0.0022441838071157708,
+      "reference_slope_response_rms": 0.00085143488896956,
+      "slope_response_error_rms": 0.000995921699854069,
+      "slope_response_relative_l2": 1.169698015381272
+    },
+    {
+      "probe": "fourier192_20nm",
+      "rate_relative_l2": 0.008094372956438311,
+      "slope_error_rms": 0.0036272615692876913,
+      "reference_slope_response_rms": 0.0005027992267717784,
+      "slope_response_error_rms": 0.003018927359263981,
+      "slope_response_relative_l2": 6.00424025837708
+    },
+    {
+      "probe": "multiscale100nm",
+      "rate_relative_l2": 0.0063447033046827375,
+      "slope_error_rms": 0.0017085944572521787,
+      "reference_slope_response_rms": 0.18614942825376737,
+      "slope_response_error_rms": 0.0011324032031503452,
+      "slope_response_relative_l2": 0.0060833020749685085
+    }
+  ],
+  "n240-m96": [
+    {
+      "probe": "flat",
+      "rate_relative_l2": 0.006029621307739748,
+      "slope_error_rms": 0.001004409603853773,
+      "reference_slope_response_rms": 0.0,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": null
+    },
+    {
+      "probe": "fourier32_20nm",
+      "rate_relative_l2": 0.0060947211744480315,
+      "slope_error_rms": 0.0012534559449928803,
+      "reference_slope_response_rms": 0.0025001833141183438,
+      "slope_response_error_rms": 0.0007674042298107458,
+      "slope_response_relative_l2": 0.30693918540983484
+    },
+    {
+      "probe": "fourier64_20nm",
+      "rate_relative_l2": 0.006137228365765398,
+      "slope_error_rms": 0.0011338032573986016,
+      "reference_slope_response_rms": 0.0012981807829975354,
+      "slope_response_error_rms": 0.0005494970736099306,
+      "slope_response_relative_l2": 0.4232823970334291
+    },
+    {
+      "probe": "fourier96_20nm",
+      "rate_relative_l2": 0.006339488740313927,
+      "slope_error_rms": 0.0014049066957415386,
+      "reference_slope_response_rms": 0.00085143488896956,
+      "slope_response_error_rms": 0.0009955622249754983,
+      "slope_response_relative_l2": 1.1692758164753692
+    },
+    {
+      "probe": "fourier192_20nm",
+      "rate_relative_l2": 0.007578314980346881,
+      "slope_error_rms": 0.0031771895797753596,
+      "reference_slope_response_rms": 0.0005027992267717784,
+      "slope_response_error_rms": 0.003018791591144214,
+      "slope_response_relative_l2": 6.00397023385728
+    },
+    {
+      "probe": "multiscale100nm",
+      "rate_relative_l2": 0.0060972486623125915,
+      "slope_error_rms": 0.0013071241775706158,
+      "reference_slope_response_rms": 0.18614942825376737,
+      "slope_response_error_rms": 0.0011833722034910181,
+      "slope_response_relative_l2": 0.006357108988150052
+    }
+  ],
+  "n480-m128": [
+    {
+      "probe": "flat",
+      "rate_relative_l2": 0.00417991807462834,
+      "slope_error_rms": 0.002044125209643992,
+      "reference_slope_response_rms": 0.0,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": null
+    },
+    {
+      "probe": "fourier32_20nm",
+      "rate_relative_l2": 0.004156960339751409,
+      "slope_error_rms": 0.00203631281467409,
+      "reference_slope_response_rms": 0.0025001833141183438,
+      "slope_response_error_rms": 0.0002761395033740113,
+      "slope_response_relative_l2": 0.11044770270030715
+    },
+    {
+      "probe": "fourier64_20nm",
+      "rate_relative_l2": 0.00414933804573425,
+      "slope_error_rms": 0.0020332074250037696,
+      "reference_slope_response_rms": 0.0012981807829975354,
+      "slope_response_error_rms": 0.0002526068857798109,
+      "slope_response_relative_l2": 0.1945852912693212
+    },
+    {
+      "probe": "fourier96_20nm",
+      "rate_relative_l2": 0.0041655130159237615,
+      "slope_error_rms": 0.002037813134361943,
+      "reference_slope_response_rms": 0.00085143488896956,
+      "slope_response_error_rms": 0.0002874623254537917,
+      "slope_response_relative_l2": 0.3376210314821483
+    },
+    {
+      "probe": "fourier192_20nm",
+      "rate_relative_l2": 0.004231666921633402,
+      "slope_error_rms": 0.0020758594338222,
+      "reference_slope_response_rms": 0.0005027992267717784,
+      "slope_response_error_rms": 0.0004891273645385973,
+      "slope_response_relative_l2": 0.9728085058504137
+    },
+    {
+      "probe": "multiscale100nm",
+      "rate_relative_l2": 0.0037313512539250753,
+      "slope_error_rms": 0.0016523049965203355,
+      "reference_slope_response_rms": 0.18614942825376737,
+      "slope_response_error_rms": 0.0006470801691901483,
+      "slope_response_relative_l2": 0.0034761329930491068
+    }
+  ],
+  "n480-m32": [
+    {
+      "probe": "flat",
+      "rate_relative_l2": 0.019978065934974254,
+      "slope_error_rms": 0.011032366046268774,
+      "reference_slope_response_rms": 0.0,
+      "slope_response_error_rms": 0.0,
+      "slope_response_relative_l2": null
+    },
+    {
+      "probe": "fourier32_20nm",
+      "rate_relative_l2": 0.019719554112176955,
+      "slope_error_rms": 0.010893421802439423,
+      "reference_slope_response_rms": 0.0025001833141183438,
+      "slope_response_error_rms": 0.0003094611943433861,
+      "slope_response_relative_l2": 0.12377540182589122
+    },
+    {
+      "probe": "fourier64_20nm",
+      "rate_relative_l2": 0.01971666386718753,
+      "slope_error_rms": 0.010892252602491874,
+      "reference_slope_response_rms": 0.0012981807829975354,
+      "slope_response_error_rms": 0.00028877087966944345,
+      "slope_response_relative_l2": 0.22244273174546866
+    },
+    {
+      "probe": "fourier96_20nm",
+      "rate_relative_l2": 0.01972062031766851,
+      "slope_error_rms": 0.010893204191968816,
+      "reference_slope_response_rms": 0.00085143488896956,
+      "slope_response_error_rms": 0.0003202935175520083,
+      "slope_response_relative_l2": 0.3761808703183868
+    },
+    {
+      "probe": "fourier192_20nm",
+      "rate_relative_l2": 0.019729637636945335,
+      "slope_error_rms": 0.010900378194890438,
+      "reference_slope_response_rms": 0.0005027992267717784,
+      "slope_response_error_rms": 0.000508984967649281,
+      "slope_response_relative_l2": 1.0123026061858096
+    },
+    {
+      "probe": "multiscale100nm",
+      "rate_relative_l2": 0.019498866652220854,
+      "slope_error_rms": 0.010509902449957465,
+      "reference_slope_response_rms": 0.18614942825376737,
+      "slope_response_error_rms": 0.004818990399494602,
+      "slope_response_relative_l2": 0.025887752891323026
+    }
+  ]
+}

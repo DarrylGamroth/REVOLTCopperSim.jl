@@ -1,0 +1,12 @@
+base_harness_sha256 = "7b08b1a1bb0f2081c2367396e509b9d59caaab32f6df61f223e59337de0b0bd8"
+graph_sha256 = "32a3f13c4e68fd5f35fb9785d11bf03ccf40ceb4fa0ddabf31a75d19e2605c38"
+harness_sha256 = "a4c082aef8c2666d31fde181bdf417b0e5560c5ecc957cc172f634681c80f795"
+modulation_points = 128
+probes = ["flat", "fourier32_20nm", "fourier64_20nm", "fourier96_20nm", "fourier192_20nm", "multiscale100nm"]
+resolution = 480
+
+[rates]
+file = "n480-m128-rates.f32.gz"
+sha256 = "223b43f3c7d0474014122712f451b3ce6ec6767e8d653169f9e54f5dbbd071d0"
+shape = [64, 64, 6]
+type = "little-endian Float32 column-major"

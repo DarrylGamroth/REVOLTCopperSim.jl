@@ -1,0 +1,24 @@
+aos_version = "0.2.2"
+calibration_columns = [1, 7, 50, 100, 130, 139, 148, 177, 228, 271, 277]
+calibration_poke_m = 2.0e-8
+cuda_version = "6.4.2"
+device = "NVIDIA GeForce RTX 3080"
+divisor = 69428.45171880456
+fft_side = 256
+julia = "1.13.2"
+modulation_points = 32
+probes = ["flat", "piston", "tilt_x_20nm", "tilt_y_20nm", "focus_20nm", "astigmatism_20nm", "coma_20nm", "tilt_x_100nm", "focus_100nm", "fourier_4_20nm", "fourier_8_20nm", "fourier_12_20nm", "mixed_100nm"]
+resolution = 120
+support_pixels = 716
+
+[interaction]
+file = "n120-m32-interaction.f32.gz"
+sha256 = "90677a386848e5e5ec0a9104d69bb295d06bddf0469ec2fa37ff7b45aabd3f6d"
+shape = [1432, 11]
+type = "little-endian Float32 column-major"
+
+[rates]
+file = "n120-m32-rates.f32.gz"
+sha256 = "c46f7c69217d778f96f2c91a5a36f6d48374c9fc7d55da1fde225fdb78711b9c"
+shape = [64, 64, 13]
+type = "little-endian Float32 column-major"

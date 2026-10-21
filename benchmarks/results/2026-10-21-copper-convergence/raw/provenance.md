@@ -1,0 +1,19 @@
+# Copper versus GPI Pyramid sampling provenance
+
+## Findings
+
+REVOLT Copper's current prescription is 480 pupil-plane samples, 30 illuminated-pupil detector samples, modulation radius 5, and 32 modulation points. The package comments attribute 480 to `REVOLT/Julia/contracts/revolt/common.toml`, radius/point count to `.../pwfs.toml`, and the 30×30 Pyramid pupil to `heart/revolt-rtc/config/copper_config_sim.yaml` (`REVOLTCopperSim.jl/src/graphs.jl:13-22,106-115`). The 480 constant is in `src/parameters.jl:3`. The source contracts under `REVOLT/Julia/contracts/revolt/` were not found in the available workspace trees, so the values are confirmed as package attributions, not independently inspected contract-file contents. The locally available RTC config does confirm `PWFS_QUAD_SIZE` rows/columns = 30 at `/home/dgamroth/workspaces/revolt-rtc/config/copper_config_sim.yaml:421-426`.
+
+The initial REVOLTCopperSim package commit `b7fdbf3` (“Create REVOLT Copper instrument simulation package”, 2026-09-01) already has these values in its TOML graph (`git show b7fdbf3:graphs/revolt_copper_hil_grid_gaussian.toml`, lines 75-87). Commit `22c587d` (“Build production and calibration plant graphs in Julia”, 2026-10-19) says it preserves the resolved TOML-era node configurations; `7e21e48` (“Consolidate REVOLT geometry and parameters”) moved the 480 constant into `src/parameters.jl`. This is inherited/configuration-derived provenance, not evidence of a demonstrated convergence requirement. The current graph comment also labels the shifted-mask approach a throughput-selected sampled detector-product approximation (`src/graphs.jl:28-33`).
+
+GPI2Sim's `docs/model-provenance.md:29-37` explicitly calls 240 pupil-plane samples a numerical choice (4 samples per 60 detector-pixel pupil) and 24 modulation quadrature points a numerical choice. It traces the 60-pixel pupil and 3 λ/D radius to the PWFS design source. Defaults are in `src/parameters.jl:41-49,113-132`; graph configuration is `src/graphs.jl:241-250`. Initial commit `e928979` (“Add provisional GPI 2.0 plant for PipeWireAO development”, 2026-10-19) introduced the package and these settings. Neither package's examined material demonstrates convergence for its preset.
+
+## Numerical comparison (derived)
+
+The nominal pupil sampling ratios are 480/30 = 16 pupil-plane samples per Copper detector-pupil sample, versus 240/60 = 4 for GPI. This ratio alone does not show that either discretization is necessary or converged.
+
+The padded Pyramid grid is also derivable from AOS's native-node sizing rule. In `AdaptiveOpticsSim.jl/src/wfs/pyramid/setup.jl:759-764`, when pupil separation is specified, padded extent is `(2 × pupil_samples + n_pix_separation + 2 × n_pix_edge) × resolution / pupil_samples`. Copper has `(resolution, pupil_samples, separation, edge) = (480, 30, 2, 1)` (`REVOLTCopperSim.jl/src/graphs.jl:106-115`), giving `(60+2+2)×16 = 1024`. GPI has `(240, 60, 60, 30)` (`GPI2Sim.jl/src/graphs.jl:241-247`), giving `(120+60+60)×4 = 960`. Thus 1024 versus 960 and 32 versus 24 modulation samples are properties of the unchanged inherited presets plus their distinct frame geometry, not convergence claims. AOS's general rule is corroborated at `AdaptiveOpticsSim.jl/src/algorithm_graphs/native_nodes.jl:2109-2120`.
+
+## Evidence boundary
+
+The configuration provenance supports why the packages use different presets: Copper follows its cited REVOLT telescope/PWFS/RTC contracts, while GPI follows a design-derived 60-pixel pupil and a documented 4× pupil oversampling choice. No convergence sweep, error tolerance, or reference-comparison evidence establishing these as minimum/sufficient discretizations was found in the searched package histories/docs. Do not describe the higher Copper ratios as a physical necessity or as convergence-qualified without additional numerical evidence.

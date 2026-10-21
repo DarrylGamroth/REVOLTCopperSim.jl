@@ -1,0 +1,53 @@
+[
+  {
+    "stage": "benchmark-1",
+    "argv": [
+      "taskset",
+      "-c",
+      "2",
+      "julia",
+      "--startup-file=no",
+      "--threads=1,0",
+      "--gcthreads=1",
+      "--project=/home/dgamroth/workspaces/codex/REVOLTCopperSim-convergence/benchmarks",
+      "/home/dgamroth/workspaces/codex/REVOLTCopperSim-convergence/benchmarks/copper_convergence.jl",
+      "/tmp/copper-convergence-20261021/benchmark-1",
+      "benchmark",
+      "480:32,180:64,120:96,240:96,240:128,480:128"
+    ]
+  },
+  {
+    "stage": "benchmark-2",
+    "argv": [
+      "taskset",
+      "-c",
+      "2",
+      "julia",
+      "--startup-file=no",
+      "--threads=1,0",
+      "--gcthreads=1",
+      "--project=/home/dgamroth/workspaces/codex/REVOLTCopperSim-convergence/benchmarks",
+      "/home/dgamroth/workspaces/codex/REVOLTCopperSim-convergence/benchmarks/copper_convergence.jl",
+      "/tmp/copper-convergence-20261021/benchmark-2",
+      "benchmark",
+      "480:128,240:128,240:96,120:96,180:64,480:32"
+    ]
+  },
+  {
+    "stage": "benchmark-3",
+    "argv": [
+      "taskset",
+      "-c",
+      "2",
+      "julia",
+      "--startup-file=no",
+      "--threads=1,0",
+      "--gcthreads=1",
+      "--project=/home/dgamroth/workspaces/codex/REVOLTCopperSim-convergence/benchmarks",
+      "/home/dgamroth/workspaces/codex/REVOLTCopperSim-convergence/benchmarks/copper_convergence.jl",
+      "/tmp/copper-convergence-20261021/benchmark-3",
+      "benchmark",
+      "120:96,240:96,240:128,480:128,480:32,180:64"
+    ]
+  }
+]
