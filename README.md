@@ -233,3 +233,17 @@ i7-12700H and RTX 3050 Ti Laptop GPU. These measurements therefore establish
 the service cost on the available systems; they are not an isolated
 AMD-versus-NVIDIA hardware comparison. Each process was pinned to one CPU, but
 the recorded system load was not otherwise quiescent.
+
+## Numerical discretization study
+
+The [CUDA pupil/modulation convergence study](benchmarks/results/2026-10-21-copper-convergence/README.md)
+compares photon rates, flat-subtracted I4Q slopes and the full 277-actuator
+calibration response against finer references, with complete captured-graph and
+HIL timings. The private graph builder accepts experimental pupil resolution and
+modulation counts; public preparation keeps the 480²/32-point prescription.
+
+`benchmarks/run_convergence.py` runs the serial campaign in an isolated Julia
+benchmark environment. NumPy handles archived-array reductions; Matplotlib is
+optional for figures. The report records the local AOS source requirement,
+commands, reference sensitivities and spatial-frequency limitations. This study
+does not qualify a new production default or a measured Copper calibration.
