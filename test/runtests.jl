@@ -5,6 +5,7 @@ using REVOLTCopperSim
 using Test
 
 include("science_analysis.jl")
+include("modes.jl")
 
 @testset "REVOLT Copper HSDM277 command geometry" begin
     index_map = actuator_index_map()

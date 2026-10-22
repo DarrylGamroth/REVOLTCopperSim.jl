@@ -201,21 +201,23 @@ function _graph_definition(
         parameters=(_pdm_parameter(Val(profile), target),))
 end
 
-function _prepare_system(profile, target, execution; calibration::Bool=false)
-    definition = _graph_definition(profile, target; calibration)
+function _prepare_system(profile, target, execution; calibration::Bool=false, mode::Symbol=:default)
+    sampling = _mode_sampling(mode)
+    definition = _graph_definition(profile, target; calibration,
+        pupil_resolution=sampling.pupil_resolution, modulation_points=sampling.modulation_points)
     graph = prepare_algorithm_graph(definition; target, execution)
     boundary = prepare_graph_hil_boundary(graph;
         command_input=:pdm_command, frame_output=:pwfs_frame)
     frame_period_s = Float32(_ATMOSPHERE_STEP)
     if calibration
         uncompensated_opd = graph_input(graph, :uncompensated_opd)
-        return (; graph, boundary, frame_period_s, uncompensated_opd)
+        return (; graph, boundary, frame_period_s, sampling..., uncompensated_opd)
     end
-    return (; graph, boundary, frame_period_s)
+    return (; graph, boundary, frame_period_s, sampling...)
 end
 
 """
-    prepare_hil_system(; profile=:grid_gaussian,
+    prepare_hil_system(; profile=:grid_gaussian, mode=:default,
         target=HostComputeDevice(), execution=StreamGraphExecution())
 
 Prepare the atmosphere-backed REVOLT Copper Julia graph and its serialized
@@ -223,28 +225,37 @@ Prepare the atmosphere-backed REVOLT Copper Julia graph and its serialized
 separable-grid implementation of the same provisional HSDM277 response.
 `frame_period_s` records the run-immutable model cadence independently of the
 detector exposure. Command and frame buffers remain owned by the boundary.
+`mode` selects numerical sampling: `:default` is 480/32, `:fast` is 240/96,
+and `:accurate` is the finer 1440/256 reference. Returned `mode`,
+`pupil_resolution`, and `modulation_points` record the resolved selection.
+These are numerical presets with finite workload evidence, not physical fidelity
+guarantees. Rebuild and recalibrate when changing mode.
 """
 function prepare_hil_system(;
     profile::Symbol=:grid_gaussian,
+    mode::Symbol=:default,
     target=HostComputeDevice(),
     execution=StreamGraphExecution(),
 )
-    return _prepare_system(profile, target, execution)
+    return _prepare_system(profile, target, execution; mode)
 end
 
 """
-    prepare_calibration_system(; profile=:grid_gaussian,
+    prepare_calibration_system(; profile=:grid_gaussian, mode=:default,
         target=HostComputeDevice(), execution=StreamGraphExecution())
 
 Prepare the same REVOLT Copper prescription with a flat `uncompensated_opd`
 input and noiseless detector for a simulation-local interaction matrix. The
 provisional HSDM277 model and sensor geometry are shared with production; this
 is not a measured instrument calibration or a qualified pixel reconstructor.
+Use the same `mode` as production; mode selection and returned sampling metadata
+are identical to `prepare_hil_system`.
 """
 function prepare_calibration_system(;
     profile::Symbol=:grid_gaussian,
+    mode::Symbol=:default,
     target=HostComputeDevice(),
     execution=StreamGraphExecution(),
 )
-    return _prepare_system(profile, target, execution; calibration=true)
+    return _prepare_system(profile, target, execution; calibration=true, mode)
 end

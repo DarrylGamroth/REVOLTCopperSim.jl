@@ -12,7 +12,7 @@ profiles:
 - `:coordinate_gaussian` evaluates the supplied actuator coordinates;
 - `:grid_gaussian` uses the equivalent separable 19×19 regular-grid model.
 
-Both retain the 480-sample pupil, 32-point shifted-mask Pyramid propagation,
+By default both retain the 480-sample pupil, 32-point shifted-mask Pyramid propagation,
 64×64 detector boundary, and deterministic five-layer atmosphere. Neither is
 a measured HSDM277 influence calibration or a qualified Copper pixel
 reconstructor.
@@ -239,8 +239,8 @@ the recorded system load was not otherwise quiescent.
 The [CUDA pupil/modulation convergence study](benchmarks/results/2026-10-21-copper-convergence/README.md)
 compares photon rates, flat-subtracted I4Q slopes and the full 277-actuator
 calibration response against finer references, with complete captured-graph and
-HIL timings. The private graph builder accepts experimental pupil resolution and
-modulation counts; public preparation keeps the 480²/32-point prescription.
+HIL timings. Public preparation keeps the 480²/32-point prescription unless an explicit
+numerical mode is selected.
 
 `benchmarks/run_convergence.py` runs the serial campaign in an isolated Julia
 benchmark environment. NumPy handles archived-array reductions; Matplotlib is
@@ -254,3 +254,47 @@ uses common seeded five-layer screens at three turbulence strengths, retaining
 trajectories, finer-reference sensitivity and science-grid checks separately.
 This finite, noiseless control fixture does not qualify the operational noisy
 RTC or change the production sampling default.
+
+### Numerical modes
+
+Both `prepare_hil_system` and `prepare_calibration_system` accept `mode`:
+
+| Mode | Pupil resolution | Modulation points | Intended use |
+|---|---:|---:|---|
+| `:default` | 480 | 32 | Existing prescription |
+| `:fast` | 240 | 96 | Faster RTC development candidate |
+| `:accurate` | 1440 | 256 | Finer numerical comparison reference |
+
+For example, use `prepare_hil_system(; mode=:fast)` and
+`prepare_calibration_system(; mode=:fast)`. Returned `mode`, `pupil_resolution`,
+and `modulation_points` record the resolved choice. Mode is independent of the
+Gaussian DM `profile`, compute target and execution policy. Changing mode
+requires rebuilding the plant and its corresponding calibration.
+
+The atmospheric study observed worst same-command slope error of 0.952% and
+maximum absolute mean residual RMS difference of 0.100% for 240/96 against
+1440/256 over its nine paired seed/strength cases. Its median plant service
+time was 1.851 ms versus 2.564 ms for the existing 480/32 case on an RTX 3080.
+These finite noiseless diagnostic-loop results do not qualify a noisy operational
+RTC loop, fixed-rate deadlines, or all spatial-frequency inputs. In particular,
+180/64 is not selected because the spatial-frequency study exposed aliasing.
+All modes retain shifted-mask propagation and the provisional instrument model;
+`:accurate` denotes the finer numerical reference, not an independent physical
+oracle or a universal accuracy guarantee. The finite periodic-screen atmosphere
+also lacks subharmonic restoration of low-frequency power.
+
+The lightweight CPU selector `test/modes.jl` checks all three resolved presets
+and rejects invalid modes through both public builders without preparing an
+optical graph. On Julia 1.13, all six checks passed on 2026-10-21. This validates
+selection only; complete numerical-mode graph execution requires separate
+validation. The prepared system exposes the resolved sampling as metadata;
+record it with calibration and experiment results.
+
+The [local CUDA mode validation](benchmarks/results/2026-10-21-copper-modes/README.md)
+exercised both public captured constructors for every mode with the compact
+modulation implementation in AOS `9a51f458`. All six cases preserved their
+277-command/64×64 boundary and had zero host allocations in completed HIL
+service. Median production service times were 2.653 ms (`:default`), 1.922 ms
+(`:fast`), and 238.142 ms (`:accurate`) on the RTX 3080. These exclude external
+RTC calculations and transport. Accurate mode is intended for finer numerical
+checks when that cost is acceptable, not a 500 Hz deadline claim.

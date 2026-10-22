@@ -13,3 +13,11 @@ const _PDM_SURFACE_OPD_SCHEMA = "org.revolt.hsdm277.pdm-surface-opd-m.f32/1"
 const _PUPIL_OPD_SCHEMA = "org.revolt.copper.pupil-opd-m.f32/1"
 const _PHOTON_RATE_SCHEMA = "org.revolt.copper.pwfs-photon-rate.f32/1"
 const _FRAME_SCHEMA = "org.revolt.copper.pwfs-frame.f32/1"
+
+# Numerical modes select discretization, independently of the DM profile.
+function _mode_sampling(mode::Symbol)
+    mode === :default && return (; mode, pupil_resolution=_PUPIL_RESOLUTION, modulation_points=32)
+    mode === :fast && return (; mode, pupil_resolution=240, modulation_points=96)
+    mode === :accurate && return (; mode, pupil_resolution=1440, modulation_points=256)
+    throw(ArgumentError("unsupported REVOLT Copper mode '$mode'; expected default, fast, or accurate"))
+end
