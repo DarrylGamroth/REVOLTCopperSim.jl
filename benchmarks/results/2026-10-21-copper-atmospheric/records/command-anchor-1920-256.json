@@ -1,0 +1,24 @@
+{
+  "cwd": "/home/dgamroth/workspaces/codex/REVOLTCopperSim-atmospheric",
+  "argv": [
+    "taskset",
+    "-c",
+    "2",
+    "julia",
+    "--project=benchmarks",
+    "--threads=1,0",
+    "--gcthreads=1",
+    "--startup-file=no",
+    "benchmarks/copper_atmospheric.jl",
+    "/home/dgamroth/workspaces/codex/copper-atmospheric-evidence/anchors",
+    "benchmarks/results/2026-10-21-copper-convergence/raw/full",
+    "300",
+    "1",
+    ".15",
+    "1920:256"
+  ],
+  "environment": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "COPPER_TEST_CUDA": "1"
+  }
+}

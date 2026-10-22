@@ -1,0 +1,215 @@
+aos_revision = "7e6ea87ae2a6bf6c33569058ea1c09f4f4df839d"
+base_harness_sha256 = "7b08b1a1bb0f2081c2367396e509b9d59caaab32f6df61f223e59337de0b0bd8"
+burn_in = 50
+calibration_points = 32
+calibration_resolution = 480
+copper_revision = "3dcbd48d0042325ffdeaea0996781ff72942ffe8"
+diagnostic_rows = ["residual_opd_rms_m", "on_axis_strehl", "open_opd_rms_m", "open_on_axis_strehl", "command_rms_m"]
+divisor = 69428.45171880456
+dt_s = 0.002
+frames = 300
+gain = 0.15
+graph_sha256 = "32a3f13c4e68fd5f35fb9785d11bf03ccf40ceb4fa0ddabf31a75d19e2605c38"
+harness_sha256 = "f0c9f2e384cc6eee5e7e8c487e137eb441e17bfa29b19bacc6999d76c1215669"
+master_pupil_resolution = 960
+modulation_points = 32
+open_frame_ids = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300]
+r0_m = 0.1
+rcond = 0.05
+resolution = 480
+retained_rank = 231
+science_resolution = 480
+science_wavelength_m = 5.5e-7
+screen_hashes = ["2c2d7da261e350414b3d195670117cc6fbde6ba6d42c5c0936a30167a24c5903", "e1c9c6642f796078519041d4502247f429e0c02201a40358654b400596fa1be9", "4f8911d43e9206a23f921bb580192700c17b982b2e899b683dfaf5bdeda72594", "411ddc50e82baf872537d7af29895e002a50f6d5b3f61bafb759d64c08aa755c", "70f12fbec3903c030b7c8b97e091692585a0f3988b2031ca1484004598afb321"]
+seed = 3
+
+[[checks]]
+frame = 1
+same_command_rate_relative_l2 = 0.014502549409954274
+same_command_slope_error_rms = 0.011151777633656866
+same_command_slope_relative_l2 = 0.021848373753250362
+science_1440_rms_m = 2.7596958769684637e-7
+science_1440_strehl = 0.008081211981240477
+science_960_rms_m = 2.759731142435403e-7
+science_960_strehl = 0.008082297317224896
+
+    [checks.fine_rate]
+    file = "n480-m32-r10-s3-f1-fine-rate.f32.gz"
+    sha256 = "aa196d4bee671d987e3e3ed2b7f5064b720bd413f8700f4ea695c30d6d7d5885"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+
+    [checks.own_rate]
+    file = "n480-m32-r10-s3-f1-own-rate.f32.gz"
+    sha256 = "3fcf0c2da8de941b620bd47135984187c9a337aa3cb82beb16d19c8740992c5c"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+[[checks]]
+frame = 50
+same_command_rate_relative_l2 = 0.016425998135398776
+same_command_slope_error_rms = 0.007564444606767795
+same_command_slope_relative_l2 = 0.024153752995756474
+science_1440_rms_m = 9.919512291822979e-8
+science_1440_strehl = 0.2673302814638457
+science_960_rms_m = 9.91907535438761e-8
+science_960_strehl = 0.2673536916281773
+
+    [checks.fine_rate]
+    file = "n480-m32-r10-s3-f50-fine-rate.f32.gz"
+    sha256 = "a9f805d5da80820381e560482f76d31084ff50f401a4dfaa4c26509f9c760d84"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+
+    [checks.own_rate]
+    file = "n480-m32-r10-s3-f50-own-rate.f32.gz"
+    sha256 = "237c79e899c9e67974aaa214bc5b7b73d9f68d5648a13d61f05d920c2119c80f"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+[[checks]]
+frame = 100
+same_command_rate_relative_l2 = 0.015317208422683495
+same_command_slope_error_rms = 0.008667480685436208
+same_command_slope_relative_l2 = 0.024621467474345772
+science_1440_rms_m = 1.208095120015844e-7
+science_1440_strehl = 0.14724089970310247
+science_960_rms_m = 1.2082028967045552e-7
+science_960_strehl = 0.14718967352889586
+
+    [checks.fine_rate]
+    file = "n480-m32-r10-s3-f100-fine-rate.f32.gz"
+    sha256 = "2006ed78be2b1f585b203c1b962ea3fd69323a8ea31480ce1a0ba1d5e67f8f35"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+
+    [checks.own_rate]
+    file = "n480-m32-r10-s3-f100-own-rate.f32.gz"
+    sha256 = "77493b0cc37acc027e64d7c3fb092d7af94334ebd33b1bd6c7da8ab930bb01c0"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+[[checks]]
+frame = 150
+same_command_rate_relative_l2 = 0.014895382004173126
+same_command_slope_error_rms = 0.008490738686443199
+same_command_slope_relative_l2 = 0.023926369508566022
+science_1440_rms_m = 1.1457745680292199e-7
+science_1440_strehl = 0.16568690123185256
+science_960_rms_m = 1.1457835112300759e-7
+science_960_strehl = 0.16568950097710505
+
+    [checks.fine_rate]
+    file = "n480-m32-r10-s3-f150-fine-rate.f32.gz"
+    sha256 = "4fb2f43e1928723bbc4d175a115eeaf438bc8d7f25ea17ca4d62847e67200186"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+
+    [checks.own_rate]
+    file = "n480-m32-r10-s3-f150-own-rate.f32.gz"
+    sha256 = "9bfa00ffcb2cae709d465f30d615c54a8409c1b42591fb4dad9de356e8aa0f87"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+[[checks]]
+frame = 200
+same_command_rate_relative_l2 = 0.015939483657902008
+same_command_slope_error_rms = 0.008724474159874273
+same_command_slope_relative_l2 = 0.026401538712067303
+science_1440_rms_m = 1.1606202346115544e-7
+science_1440_strehl = 0.17698694634993134
+science_960_rms_m = 1.1606791885225523e-7
+science_960_strehl = 0.17695950229071247
+
+    [checks.fine_rate]
+    file = "n480-m32-r10-s3-f200-fine-rate.f32.gz"
+    sha256 = "6f84df8245f82291d8efb8cfcc3f3eef682d0bccf5ddf909009d11e3fc6f6cd9"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+
+    [checks.own_rate]
+    file = "n480-m32-r10-s3-f200-own-rate.f32.gz"
+    sha256 = "a0de2381e45c6afe50bcea0893079045a506e614bcd06b4d638e18a9af72dbc2"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+[[checks]]
+frame = 250
+same_command_rate_relative_l2 = 0.016298483435963323
+same_command_slope_error_rms = 0.0073497767868130415
+same_command_slope_relative_l2 = 0.023843651617698344
+science_1440_rms_m = 1.1287142796487497e-7
+science_1440_strehl = 0.186431241350842
+science_960_rms_m = 1.128839316800216e-7
+science_960_strehl = 0.18636673077658408
+
+    [checks.fine_rate]
+    file = "n480-m32-r10-s3-f250-fine-rate.f32.gz"
+    sha256 = "cd4a02ec44adf33a25684966497f3509115e00b3bde1fa8cd1fd1883a9f16b21"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+
+    [checks.own_rate]
+    file = "n480-m32-r10-s3-f250-own-rate.f32.gz"
+    sha256 = "96561227294aa6465c119e9ca5018d80cab0db26fbe1217bc9d8d67ac4ea1429"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+[[checks]]
+frame = 300
+same_command_rate_relative_l2 = 0.016794482167383377
+same_command_slope_error_rms = 0.00817126308381436
+same_command_slope_relative_l2 = 0.024699453461545257
+science_1440_rms_m = 1.1829008106827841e-7
+science_1440_strehl = 0.15393941804413036
+science_960_rms_m = 1.1829209501326452e-7
+science_960_strehl = 0.15393991494792436
+
+    [checks.fine_rate]
+    file = "n480-m32-r10-s3-f300-fine-rate.f32.gz"
+    sha256 = "a5013d0440161aa1b07f804eea434a7e1d23b2c97ea55d5c4d35836cd259d0fc"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+
+    [checks.own_rate]
+    file = "n480-m32-r10-s3-f300-own-rate.f32.gz"
+    sha256 = "4f2bdf870fea2f4e23a4057b7a6355d3f9b30701cb8261c0b85f40e4dadd23ab"
+    shape = [64, 64]
+    type = "little-endian Float32 column-major"
+
+[closed_slopes]
+file = "n480-m32-r10-s3-closed-slopes.f32.gz"
+sha256 = "0b900102537f48c14adf607c7717424a01d0485b7637d635de9745723a7d6137"
+shape = [1432, 300]
+type = "little-endian Float32 column-major"
+
+[commands]
+file = "n480-m32-r10-s3-commands.f32.gz"
+sha256 = "c0ebd62316f0526d19057ad4cdba8375f5c98f1c5a19d28ff2b8589f99c86d19"
+shape = [277, 300]
+type = "little-endian Float32 column-major"
+
+[diagnostics]
+file = "n480-m32-r10-s3-diagnostics.f32.gz"
+sha256 = "51d918d0df377350d74175bdecada2940aad56587011e8483dbd74b117cede03"
+shape = [5, 300]
+type = "little-endian Float32 column-major"
+
+[flat]
+file = "n480-m32-r10-s3-flat.f32.gz"
+sha256 = "41ba372747cc7054f2b43b6b0ae58dde24a5e54e0cfe35a981b3599fbc834260"
+shape = [64, 64]
+type = "little-endian Float32 column-major"
+
+[open_slopes]
+file = "n480-m32-r10-s3-open-slopes.f32.gz"
+sha256 = "c2795b88d821afc9dc360c2572241361045c77a55884384498109a07cce4b715"
+shape = [1432, 31]
+type = "little-endian Float32 column-major"
+
+[plant_timing]
+gc_collections = 0
+host_bytes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+p50_ns = 2.563466e6
+p90_ns = 2.5669917e6
+samples_ns = [0x273048, 0x2725d5, 0x271c17, 0x271bc7, 0x2722be, 0x271027, 0x2712d0, 0x272f12, 0x270f4a, 0x270b93, 0x2722b4, 0x272413, 0x2722fa, 0x272214, 0x272626, 0x2713ac, 0x271cca, 0x271e3e, 0x271ded, 0x2716f6, 0x2719e6, 0x272ef4, 0x27282f, 0x2719dc, 0x270043, 0x272b3d, 0x271e52, 0x27246d, 0x2704a5, 0x2725cc, 0x272b64, 0x2727c0, 0x27205a, 0x271af4, 0x272d64, 0x2724bd, 0x272d1d, 0x2708fd, 0x272b47, 0x2721cd, 0x2726a8, 0x272369, 0x270f5e, 0x271cd4, 0x27230e, 0x271fec, 0x27153e, 0x271c67, 0x2720d3, 0x271c3f, 0x2729e7, 0x272321, 0x27123a, 0x271294, 0x270df6, 0x271b77, 0x271e66, 0x2716e2, 0x27185f, 0x271d44, 0x271ed4, 0x270cbf, 0x2730cb, 0x2712e5, 0x2715dd, 0x271f4c, 0x27155c, 0x271913, 0x271226, 0x27124e, 0x271d57, 0x270e78, 0x272368, 0x272a4c, 0x271660, 0x270f19, 0x2727b6, 0x271a5e, 0x2729e7, 0x271d12, 0x27267f, 0x270f40, 0x272015, 0x270fa5, 0x272336, 0x270803, 0x2716ec, 0x27087b, 0x271d8a, 0x271869, 0x2730e9, 0x272be6, 0x27205b, 0x273f4f, 0x2718cd, 0x2710f9, 0x2711fe, 0x271d9e, 0x273099, 0x271a35, 0x2726d0, 0x272064, 0x271d8a, 0x271c3f, 0x272340, 0x272857, 0x2704ba, 0x271805, 0x271eb6, 0x2727cb, 0x271515, 0x27341e, 0x2710db, 0x271869, 0x2705dd, 0x271909, 0x271dda, 0x270edc, 0x2721ec, 0x272734, 0x271e02, 0x2729fb, 0x271ab8, 0x270daf, 0x272ceb, 0x27210f, 0x27103b, 0x271122]
+
+[rates]
+file = "n480-m32-r10-s3-rates.f32.gz"
+sha256 = "198b2969902d64ba0f3ca6dbcb56260c59965be59ef19065fa116a6127147b0d"
+shape = [64, 64, 31]
+type = "little-endian Float32 column-major"

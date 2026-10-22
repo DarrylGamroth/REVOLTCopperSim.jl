@@ -1,0 +1,18 @@
+{
+  "cwd": "/home/dgamroth/workspaces/codex/REVOLTCopperSim-atmospheric",
+  "argv": [
+    "taskset",
+    "-c",
+    "2",
+    "julia",
+    "--project=benchmarks",
+    "--threads=1,0",
+    "--gcthreads=1",
+    "--startup-file=no",
+    "test/benchmarks/atmospheric_parity.jl"
+  ],
+  "environment": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "COPPER_TEST_CUDA": "1"
+  }
+}

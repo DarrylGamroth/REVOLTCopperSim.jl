@@ -247,3 +247,10 @@ benchmark environment. NumPy handles archived-array reductions; Matplotlib is
 optional for figures. The report records the local AOS source requirement,
 commands, reference sensitivities and spatial-frequency limitations. This study
 does not qualify a new production default or a measured Copper calibration.
+
+The [paired atmospheric and closed-loop follow-up](benchmarks/results/2026-10-21-copper-atmospheric/README.md)
+uses common seeded five-layer screens at three turbulence strengths, retaining
+300 causal feedback updates per run. It reports sensor errors, control
+trajectories, finer-reference sensitivity and science-grid checks separately.
+This finite, noiseless control fixture does not qualify the operational noisy
+RTC or change the production sampling default.

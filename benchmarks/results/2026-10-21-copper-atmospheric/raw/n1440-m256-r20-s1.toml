@@ -1,0 +1,110 @@
+aos_revision = "7e6ea87ae2a6bf6c33569058ea1c09f4f4df839d"
+base_harness_sha256 = "7b08b1a1bb0f2081c2367396e509b9d59caaab32f6df61f223e59337de0b0bd8"
+burn_in = 50
+calibration_points = 256
+calibration_resolution = 1440
+copper_revision = "3dcbd48d0042325ffdeaea0996781ff72942ffe8"
+diagnostic_rows = ["residual_opd_rms_m", "on_axis_strehl", "open_opd_rms_m", "open_on_axis_strehl", "command_rms_m"]
+divisor = 69428.45171880456
+dt_s = 0.002
+frames = 300
+gain = 0.15
+graph_sha256 = "32a3f13c4e68fd5f35fb9785d11bf03ccf40ceb4fa0ddabf31a75d19e2605c38"
+harness_sha256 = "f0c9f2e384cc6eee5e7e8c487e137eb441e17bfa29b19bacc6999d76c1215669"
+master_pupil_resolution = 960
+modulation_points = 256
+open_frame_ids = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300]
+r0_m = 0.2
+rcond = 0.05
+resolution = 1440
+retained_rank = 231
+science_resolution = 480
+science_wavelength_m = 5.5e-7
+screen_hashes = ["3f40dec8b9cd5e9447baf422918c7bfe122922d672dc1631823d908c63e12cbb", "689b554f6af4c20026e4704a2142cdd24e40a53c33ecbfb2efb4997476698869", "7e228fe284d8d2335862e92e45ebcb88338f651159d406409e8960411f384871", "7364880d1f35e0a73aef11c857aa865be5a028a1e25d0d1c5cce48c50cedcfec", "d914db44ac6c039f77219551cae42f4bd0303988cc52e502b58360a57863c1e6"]
+seed = 1
+
+[[checks]]
+frame = 1
+science_1440_rms_m = 1.7831879885389943e-7
+science_1440_strehl = 0.007838557270334317
+science_960_rms_m = 1.7831389177193185e-7
+science_960_strehl = 0.007838765280354834
+[[checks]]
+frame = 50
+science_1440_rms_m = 5.812976058497047e-8
+science_1440_strehl = 0.6467808528041679
+science_960_rms_m = 5.8128085173197274e-8
+science_960_strehl = 0.6467983446555461
+[[checks]]
+frame = 100
+science_1440_rms_m = 5.968997093271508e-8
+science_1440_strehl = 0.6314768247581002
+science_960_rms_m = 5.969324078393074e-8
+science_960_strehl = 0.6314452457433855
+[[checks]]
+frame = 150
+science_1440_rms_m = 6.804476889865401e-8
+science_1440_strehl = 0.5460941265716017
+science_960_rms_m = 6.804606760724139e-8
+science_960_strehl = 0.5460819982722517
+[[checks]]
+frame = 200
+science_1440_rms_m = 8.18528252025495e-8
+science_1440_strehl = 0.3937582329838964
+science_960_rms_m = 8.185143243737863e-8
+science_960_strehl = 0.39377269218571104
+[[checks]]
+frame = 250
+science_1440_rms_m = 6.488345447491339e-8
+science_1440_strehl = 0.5716313955273146
+science_960_rms_m = 6.489054319264797e-8
+science_960_strehl = 0.5715618308311222
+[[checks]]
+frame = 300
+science_1440_rms_m = 6.607374392061144e-8
+science_1440_strehl = 0.5607195258812264
+science_960_rms_m = 6.607759729584942e-8
+science_960_strehl = 0.5606807605592349
+
+[closed_slopes]
+file = "n1440-m256-r20-s1-closed-slopes.f32.gz"
+sha256 = "7a34c32fd0a5b88a6bbdabd84c5a9e8a26bca9a7092ce8000d3b407cefd7e4cd"
+shape = [1432, 300]
+type = "little-endian Float32 column-major"
+
+[commands]
+file = "n1440-m256-r20-s1-commands.f32.gz"
+sha256 = "a0ee85f44c56477fbd937dff9a46bd3b011fc36848bd3b1ee19d811870bdc37f"
+shape = [277, 300]
+type = "little-endian Float32 column-major"
+
+[diagnostics]
+file = "n1440-m256-r20-s1-diagnostics.f32.gz"
+sha256 = "9ceac5731c7519b5d669fc028a222aee66484cbaf1f88c1509fc9a9506e5345c"
+shape = [5, 300]
+type = "little-endian Float32 column-major"
+
+[flat]
+file = "n1440-m256-r20-s1-flat.f32.gz"
+sha256 = "0dce68f6c86c6cdecdf57d6cc0a7d6843d366805059f0634af36eeaee6ec73d4"
+shape = [64, 64]
+type = "little-endian Float32 column-major"
+
+[open_slopes]
+file = "n1440-m256-r20-s1-open-slopes.f32.gz"
+sha256 = "a257afa816af788e888c1751be41b82e13831d3571d6926abf7e0795aa899fce"
+shape = [1432, 31]
+type = "little-endian Float32 column-major"
+
+[plant_timing]
+gc_collections = 0
+host_bytes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+p50_ns = 2.36604492e8
+p90_ns = 2.36675605e8
+samples_ns = [0x0e18217f, 0x0e1a5a3b, 0x0e1bb66c, 0x0e1a4139, 0x0e18fb8d, 0x0e1aba95, 0x0e1a0a63, 0x0e19a05f, 0x0e1a7d00, 0x0e19bcf1, 0x0e1a575f, 0x0e1bf62d, 0x0e192bb6, 0x0e1b075f, 0x0e1b0dbe, 0x0e1a271f]
+
+[rates]
+file = "n1440-m256-r20-s1-rates.f32.gz"
+sha256 = "9079027e739c9f7b19a531cf0c29ebfec3b30c8b41ad0ed828a46c8db51374d7"
+shape = [64, 64, 31]
+type = "little-endian Float32 column-major"

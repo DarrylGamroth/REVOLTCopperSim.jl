@@ -1,0 +1,47 @@
+{
+  "raw_files_verified": 833,
+  "supporting_records_verified": 30,
+  "run_count": 47,
+  "pair_count": 9,
+  "source_hashes_verified": {
+    "benchmarks/analyze_atmospheric.py": "668a48d4dd8a4b0cd19e37872c75d3ee374503aaeb473932475e8c435a3320bd",
+    "benchmarks/copper_atmospheric.jl": "f0c9f2e384cc6eee5e7e8c487e137eb441e17bfa29b19bacc6999d76c1215669",
+    "benchmarks/persist_atmospheric.py": "cbd4d1effcc82e27816f368ef71c9efce30854449b9807448ab3d719c17ae086",
+    "benchmarks/run_atmospheric.py": "3228ffae3da75929e1d5141919af6fdc4c26a349fc169e4e1fa8e013d47f4df8"
+  },
+  "maximum_total_photon_rate_fractional_discrepancy": 6.689056843304654e-05,
+  "anchors": [
+    {
+      "case": "n1920-m256-r15-s1",
+      "rank": 231,
+      "causal_error_m": 2.6095614836033934e-14,
+      "open_rate_relative_l2": 0.0003896907417075843,
+      "open_slope_relative_l2": 0.00028483796323648767,
+      "steady_open_rate_relative_l2": 0.0003882034257548479,
+      "steady_open_slope_relative_l2": 0.0002820751439032569,
+      "closed_trajectory_slope_relative_l2": 0.00035008560432583144,
+      "command_trajectory_relative_l2": 0.0001404148652400049,
+      "residual_rms_mean_difference_nm": -0.009256297062165686,
+      "residual_rms_mean_ratio": 0.9999016081526408,
+      "strehl_mean_difference": 6.916177272796631e-05,
+      "max_science_480_vs_1440_rms_nm": 0.011256814283081527,
+      "max_science_paired_effect_rms_nm": 7.137982711586696e-06
+    },
+    {
+      "case": "n1440-m512-r15-s1",
+      "rank": 231,
+      "causal_error_m": 1.9676959152533384e-14,
+      "open_rate_relative_l2": 0.0002466775794647895,
+      "open_slope_relative_l2": 0.0008903335273426072,
+      "steady_open_rate_relative_l2": 0.00024054993904090203,
+      "steady_open_slope_relative_l2": 0.0008616794587832285,
+      "closed_trajectory_slope_relative_l2": 0.000581473837293751,
+      "command_trajectory_relative_l2": 0.0006114516110274918,
+      "residual_rms_mean_difference_nm": 0.024164165779438918,
+      "residual_rms_mean_ratio": 1.0002568583197973,
+      "strehl_mean_difference": -0.00021180951595306397,
+      "max_science_480_vs_1440_rms_nm": 0.011253526715067415,
+      "max_science_paired_effect_rms_nm": 1.0425550725699368e-05
+    }
+  ]
+}
