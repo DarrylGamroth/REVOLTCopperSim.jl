@@ -88,14 +88,21 @@ function run_builder(mode, n, points, calibration, target)
     @assert size(hil_frame_buffer(system.boundary)) == (64, 64)
     pupil = calibration ? system.uncompensated_opd : graph_output(system.graph, :pupil_opd)
     @assert size(pupil) == (n, n)
-    # Benchmark-only owner introspection verifies direct physical phase ownership.
+    # Account actual device modulation storage across AOS implementation revisions.
     prepared = AG.prepared_graph_node(system.graph, :pwfs).prepared
     modulation = prepared.front_end.modulation
     @assert OPTICS.modulation_point_count(modulation) == points
-    @assert modulation.phases isa CUDA.CuArray
-    phase_shape = size(modulation.phases)
-    @assert phase_shape == (n, n, points)
-    bytes = sizeof(eltype(modulation.phases)) * length(modulation.phases)
+    arrays = Dict{String,Any}()
+    bytes = 0
+    for name in fieldnames(typeof(modulation))
+        array = getfield(modulation, name)
+        array isa CUDA.CuArray || continue
+        @assert size(array, 1) == n && size(array, ndims(array)) == points
+        array_bytes = sizeof(eltype(array)) * length(array)
+        arrays[string(name)] = Dict("shape"=>collect(size(array)), "bytes"=>array_bytes)
+        bytes += array_bytes
+    end
+    @assert !isempty(arrays)
     checks = validate_inputs!(system, calibration, n)
     reset_hil_boundary!(system.boundary)
     timing = measurements(system.boundary)
@@ -103,7 +110,7 @@ function run_builder(mode, n, points, calibration, target)
     return Dict("mode" => string(mode), "builder" => calibration ? "calibration" : "production",
         "pupil_resolution" => n, "modulation_points" => points,
         "preparation_ns" => preparation_ns, "direct_modulation_gpu_bytes" => bytes,
-        "phase_shape" => collect(phase_shape), "checks" => checks,
+        "modulation_arrays" => arrays, "checks" => checks,
         "completed_hil_service" => timing)
 end
 
