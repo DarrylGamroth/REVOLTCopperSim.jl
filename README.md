@@ -12,8 +12,10 @@ profiles:
 - `:coordinate_gaussian` evaluates the supplied actuator coordinates;
 - `:grid_gaussian` uses the equivalent separable 19×19 regular-grid model.
 
-By default both retain the 480-sample pupil, 32-point shifted-mask Pyramid propagation,
-64×64 detector boundary, and deterministic five-layer atmosphere. Neither is
+By default both retain physical pupil-plane tilt propagation at the 480-sample
+pupil and 32-point modulation sampling, plus the 64×64 detector boundary and
+deterministic five-layer atmosphere. The propagation change keeps those
+sampling values fixed. Neither profile is
 a measured HSDM277 influence calibration or a qualified Copper pixel
 reconstructor.
 
@@ -215,6 +217,10 @@ ten warmup frames per run; both accelerator results used 200. The
 [CUDA](benchmark/results/2026-09-01-cuda.toml) artifacts contain the raw
 samples and provenance.
 
+These archived service benchmarks predate the switch to physical pupil-plane
+tilt propagation. They describe the retired shifted-mask approximation and do
+not qualify the current optical model or its runtime.
+
 The earlier CUDA artifact used CUDA.jl's task-coordinated stream wait at every
 captured completion boundary. AdaptiveOpticsSim `aa3d934` selects direct
 blocking stream completion only for capture-qualified execution, which cannot
@@ -236,11 +242,13 @@ the recorded system load was not otherwise quiescent.
 
 ## Numerical discretization study
 
-The [CUDA pupil/modulation convergence study](benchmarks/results/2026-10-21-copper-convergence/README.md)
+The archived [CUDA pupil/modulation convergence study](benchmarks/results/2026-10-21-copper-convergence/README.md)
 compares photon rates, flat-subtracted I4Q slopes and the full 277-actuator
 calibration response against finer references, with complete captured-graph and
-HIL timings. Public preparation keeps the 480²/32-point prescription unless an explicit
-numerical mode is selected.
+HIL timings. It used the retired shifted-mask approximation. Current public
+preparation uses physical pupil-plane tilt propagation and keeps the 480²/32-point
+prescription unless an explicit numerical mode is selected; the archived study
+does not qualify this propagation formulation.
 
 `benchmarks/run_convergence.py` runs the serial campaign in an isolated Julia
 benchmark environment. NumPy handles archived-array reductions; Matplotlib is
@@ -278,10 +286,12 @@ time was 1.851 ms versus 2.564 ms for the existing 480/32 case on an RTX 3080.
 These finite noiseless diagnostic-loop results do not qualify a noisy operational
 RTC loop, fixed-rate deadlines, or all spatial-frequency inputs. In particular,
 180/64 is not selected because the spatial-frequency study exposed aliasing.
-All modes retain shifted-mask propagation and the provisional instrument model;
-`:accurate` denotes the finer numerical reference, not an independent physical
-oracle or a universal accuracy guarantee. The finite periodic-screen atmosphere
-also lacks subharmonic restoration of low-frequency power.
+All modes use physical pupil-plane tilt propagation and retain the provisional
+instrument model; `:accurate` denotes the finer numerical reference, not an
+independent physical oracle or a universal accuracy guarantee. The archived
+shifted-mask numerical-mode results do not qualify the current formulation. The
+finite periodic-screen atmosphere also lacks subharmonic restoration of
+low-frequency power.
 
 The lightweight CPU selector `test/modes.jl` checks all three resolved presets
 and rejects invalid modes through both public builders without preparing an
@@ -298,3 +308,10 @@ service. Median production service times were 2.653 ms (`:default`), 1.922 ms
 (`:fast`), and 238.142 ms (`:accurate`) on the RTX 3080. These exclude external
 RTC calculations and transport. Accurate mode is intended for finer numerical
 checks when that cost is acceptable, not a 500 Hz deadline claim.
+
+## Physical propagation validation
+
+The [AOS physical-model validation](https://github.com/DarrylGamroth/AdaptiveOpticsSim.jl/blob/d781fb2319f2cb134d4aaa70975cb5454ce1d81c/benchmarks/results/platform/2026-10-22-pupil-tilt-reference/README.md)
+records the withdrawal of shifted-mask propagation, matched external-reference
+checks, CUDA capture, allocations, closed-loop parity and current timings.
+Regenerate calibrations and rebuild captured graphs when changing propagation.

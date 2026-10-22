@@ -141,7 +141,7 @@ include(joinpath(@__DIR__, "pyrtc", "test_aoc_calibration.jl"))
         )
         @test pwfs_owner.prepared.plan.propagation.
             modulation_propagation_strategy isa
-            WavefrontSensors.PyramidShiftedMaskStrategy
+            WavefrontSensors.PyramidPupilTiltStrategy
         first_atmosphere_opd = copy(graph_output(graph, Val(:atmosphere_opd)))
 
         fill!(hil_command_buffer(boundary), 0.0f0)

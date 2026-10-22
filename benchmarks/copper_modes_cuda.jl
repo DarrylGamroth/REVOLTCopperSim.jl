@@ -88,16 +88,14 @@ function run_builder(mode, n, points, calibration, target)
     @assert size(hil_frame_buffer(system.boundary)) == (64, 64)
     pupil = calibration ? system.uncompensated_opd : graph_output(system.graph, :pupil_opd)
     @assert size(pupil) == (n, n)
-    # Benchmark-only owner introspection verifies actual compact device ownership.
+    # Benchmark-only owner introspection verifies direct physical phase ownership.
     prepared = AG.prepared_graph_node(system.graph, :pwfs).prepared
     modulation = prepared.front_end.modulation
     @assert OPTICS.modulation_point_count(modulation) == points
-    @assert modulation.coordinates isa CUDA.CuArray
-    @assert modulation.offsets isa CUDA.CuArray
-    @assert size(modulation.coordinates) == (n,)
-    @assert size(modulation.offsets) == (2, points)
-    bytes = sizeof(eltype(modulation.coordinates)) * length(modulation.coordinates) +
-        sizeof(eltype(modulation.offsets)) * length(modulation.offsets)
+    @assert modulation.phases isa CUDA.CuArray
+    phase_shape = size(modulation.phases)
+    @assert phase_shape == (n, n, points)
+    bytes = sizeof(eltype(modulation.phases)) * length(modulation.phases)
     checks = validate_inputs!(system, calibration, n)
     reset_hil_boundary!(system.boundary)
     timing = measurements(system.boundary)
@@ -105,8 +103,7 @@ function run_builder(mode, n, points, calibration, target)
     return Dict("mode" => string(mode), "builder" => calibration ? "calibration" : "production",
         "pupil_resolution" => n, "modulation_points" => points,
         "preparation_ns" => preparation_ns, "direct_modulation_gpu_bytes" => bytes,
-        "coordinate_shape" => collect(size(modulation.coordinates)),
-        "offset_shape" => collect(size(modulation.offsets)), "checks" => checks,
+        "phase_shape" => collect(phase_shape), "checks" => checks,
         "completed_hil_service" => timing)
 end
 
@@ -129,9 +126,28 @@ function optional_text(path)
     return isfile(path) ? strip(read(path, String)) : "unavailable"
 end
 
+function selected_modes()
+    raw = get(ENV, "COPPER_MODES", "")
+    isempty(strip(raw)) && return first.(EXPECTED)
+    names = strip.(split(raw, ','))
+    allowed = Set(string.(first.(EXPECTED)))
+    unknown = filter(name -> !(name in allowed), names)
+    isempty(unknown) || error("unknown COPPER_MODES value(s): $(join(unknown, ", ")); expected default,fast,accurate")
+    length(unique(names)) == length(names) || error("COPPER_MODES must not contain duplicates")
+    return Symbol.(names)
+end
+
+function expected_sampling(mode)
+    for (name, n, points) in EXPECTED
+        name === mode && return n, points
+    end
+    error("unknown Copper numerical mode: $mode")
+end
+
 function main()
     length(ARGS) == 1 || error("usage: copper_modes_cuda.jl OUTPUT.toml")
     Threads.nthreads() == 1 || error("run with one Julia thread")
+    modes = selected_modes()
     BLAS.set_num_threads(1)
     AdaptiveOpticsSim.Backends.set_fft_provider_threads!(1)
     CUDA.allowscalar(false)
@@ -157,8 +173,10 @@ function main()
         path = joinpath(dirname(Base.active_project()), filename)
         isfile(path) && (record[lowercase(filename) * "_sha256"] = bytes2hex(sha256(read(path))))
     end
+    record["selected_modes"] = string.(modes)
     persist(output, record)
-    for (mode, n, points) in EXPECTED, calibration in (true, false)
+    for mode in modes, calibration in (true, false)
+        n, points = expected_sampling(mode)
         println("Preparing ", mode, " ", calibration ? "calibration" : "production"); flush(stdout)
         try
             push!(record["results"], run_builder(mode, n, points, calibration, target))

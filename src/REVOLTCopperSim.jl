@@ -3,7 +3,7 @@ module REVOLTCopperSim
 
 using AdaptiveOpticsSim.AlgorithmGraphs
 using AdaptiveOpticsSim.Backends: HostComputeDevice, allocate_device_array
-using AdaptiveOpticsSim.WavefrontSensors: PyramidShiftedMaskStrategy
+using AdaptiveOpticsSim.WavefrontSensors: PyramidPupilTiltStrategy
 
 include("parameters.jl")
 include("geometry.jl")
