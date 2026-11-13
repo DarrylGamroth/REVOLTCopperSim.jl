@@ -12,8 +12,8 @@ TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 REVOLTCopperSim = {path = ".."}
 
 [compat]
-AdaptiveOpticsSim = "0.2.1"
-CUDA = "6.4.2"
+AdaptiveOpticsSim = "0.3.24"
+CUDA = "6.5.1"
 REVOLTCopperSim = "0.2"
 julia = "1.12"
 Pkg = "1.12"
