@@ -19,6 +19,8 @@ const _WIRE_CONTRACTS = (
         command_schema=REVOLTCopperSim._PDM_COMMAND_SCHEMA, command_scale=1f0),
     (; frame_encoding=:uint16, frame_schema="org.calculon.ao.raw-detector-pixels/1",
         command_schema="org.calculon.ao.demanded-pdm-command/1", command_scale=1f-6),
+    (; frame_encoding=:uint16, frame_schema="pipewireao/raw-detector-pixels-u16/1",
+        command_schema="pipewireao/dm-command-opd-um-f32/1", command_scale=1f-6),
     (; frame_encoding=:uint16, frame_schema="org.heart.std-wfs.raw-pixels/1",
         command_schema="org.heart.std-dm.actuator-command/1", command_scale=1f0),
 )
